@@ -73,7 +73,7 @@
                         <tile>net.kemitix.tiles:pmd:${kemitix-tiles.version}</tile>
                         <tile>net.kemitix.tiles:digraph:${kemitix-tiles.version}</tile>
                         <tile>net.kemitix.tiles:testing:${kemitix-tiles.version}</tile>
-                        <!--<tile>net.kemitix.tiles:coverage:${kemitix-tiles.version}</tile>-->
+                        <tile>net.kemitix.tiles:coverage:${kemitix-tiles.version}</tile>
                         <!--<tile>net.kemitix.checkstyle:tile:${kemitix-checkstyle.version}</tile>-->
                     </tiles>
                 </configuration>
