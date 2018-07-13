@@ -47,6 +47,7 @@
         <tiles-maven-plugin.version>2.11</tiles-maven-plugin.version>
         <kemitix-tiles.version>0.9.0</kemitix-tiles.version>
         <kemitix-checkstyle.version>4.1.1</kemitix-checkstyle.version>
+        <spring-boot.version>1.5.14.RELEASE</spring-boot.version>
         <digraph-dependency.basePackage>com.hubio.s3sftp</digraph-dependency.basePackage>
         <apache-sshd.version>1.3.0</apache-sshd.version>
         <map-builder.version>1.0.0</map-builder.version>
@@ -55,6 +56,7 @@
         <assertj.version>3.6.2</assertj.version>
         <junit-hierarchicalcontextrunner.version>4.12.1</junit-hierarchicalcontextrunner.version>
         <mockito-java8.version>0.3.1</mockito-java8.version>
+        <lombok.version>1.18.0</lombok.version>
     </properties>
 
     <build>
@@ -87,9 +89,14 @@
                 <!-- Import dependency management from Spring Boot -->
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-dependencies</artifactId>
-                <version>1.5.14.RELEASE</version>
+                <version>${spring-boot.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.projectlombok</groupId>
+                <artifactId>lombok</artifactId>
+                <version>${lombok.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.hubio</groupId>
