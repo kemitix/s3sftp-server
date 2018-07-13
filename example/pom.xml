@@ -6,17 +6,27 @@
     <parent>
         <groupId>com.hubio</groupId>
         <artifactId>s3sftp-parent</artifactId>
-        <version>1.0.0</version>
+        <version>DEV-SNAPSHOT</version>
+        <relativePath>../parent</relativePath>
     </parent>
 
     <artifactId>s3sftp-example</artifactId>
 
     <name>S3 SFTP Server (example)</name>
 
+    <properties>
+        <spring-boot.version>1.5.14.RELEASE</spring-boot.version>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>com.hubio</groupId>
             <artifactId>s3sftp-server</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <scope>provided</scope>
         </dependency>
 
         <dependency>
