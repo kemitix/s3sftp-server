@@ -57,7 +57,7 @@ public class FileChannelS3SftpFileSystemProviderTest {
     public void newFileChannel() throws Exception {
         //given
         val fileSystem = mock(S3FileSystem.class);
-        given(fileSystem.parts2Key(any())).willReturn("key");
+        //given(fileSystem.parts2Key(any())).willReturn("key");
 
         val provider = mock(S3FileSystemProvider.class);
         given(fileSystem.provider()).willReturn(provider);

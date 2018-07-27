@@ -98,11 +98,6 @@ class InvertedS3FileSystemProvider extends S3FileSystemProvider {
     }
 
     @Override
-    protected void overloadProperties(final Properties props, final Map<String, ?> env) {
-        provider.overloadProperties(props, env);
-    }
-
-    @Override
     protected boolean overloadPropertiesWithEnv(final Properties props, final Map<String, ?> env, final String key) {
         return provider.overloadPropertiesWithEnv(props, env, key);
     }

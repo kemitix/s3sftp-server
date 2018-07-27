@@ -3,42 +3,30 @@ package com.hubio.s3sftp.server;
 import com.upplication.s3fs.S3FileSystem;
 import com.upplication.s3fs.S3Path;
 import lombok.val;
-import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 
 /**
- * Tests for {@link }.
+ * Tests for {@link FixedPrefixS3PathEnhancer}.
  *
  * @author Paul Campbell (paul.campbell@hubio.com)
  */
 public class FixedPrefixS3PathEnhancerTest {
 
-    private FixedPrefixS3PathEnhancer subject;
-
-    private String prefix;
-
-    @Mock
-    private S3FileSystem fileSystem;
-
-    @Before
-    public void setUp() throws Exception {
-        MockitoAnnotations.initMocks(this);
-        prefix = "/home";
-        subject = new FixedPrefixS3PathEnhancer(prefix);
-    }
+    private String prefix = "/home";
+    private S3FileSystem fileSystem = mock(S3FileSystem.class);
+    private FixedPrefixS3PathEnhancer subject = new FixedPrefixS3PathEnhancer(prefix);
 
     @Test
     public void shouldAlreadyStartWithPrefix() throws Exception {
         //given
-        val path = new S3Path(fileSystem, prefix + "/user");
+        final S3Path path = new S3Path(fileSystem, prefix + "/user");
         //when
-        val result = subject.apply(path);
+        final S3Path result = subject.apply(path);
         //then
-        assertThat(result.toString()).isEqualTo("/home/user");
+        assertThat(S3PathUtil.dirPath(result)).isEqualTo("/home/user");
     }
 
     @Test
@@ -48,6 +36,6 @@ public class FixedPrefixS3PathEnhancerTest {
         //when
         val result = subject.apply(path);
         //then
-        assertThat(result.toString()).isEqualTo("/home/user");
+        assertThat(S3PathUtil.dirPath(result)).isEqualTo("/home/user/");
     }
 }
