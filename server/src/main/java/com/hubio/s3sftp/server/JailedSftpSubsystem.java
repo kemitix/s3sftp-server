@@ -100,25 +100,25 @@ class JailedSftpSubsystem extends SftpSubsystem {
     @Override
     protected Path resolveFile(final String remotePath) {
         log.debug("resolveFile({})", remotePath);
-        val serverSession = SftpSession.of(getServerSession());
-        val bucketName = sessionBucket.getBucket(serverSession);
-        val homeKey = sessionHome.getHomePath(serverSession);
-        val homeDir = SEPARATOR + bucketName + SEPARATOR + homeKey;
-        val jailKey = sessionJail.getJail(serverSession);
-        val unJailedPath = getUnJailedPath(remotePath, bucketName, homeKey, jailKey, homeDir);
+        final SftpSession serverSession = SftpSession.of(getServerSession());
+        final String bucketName = sessionBucket.getBucket(serverSession);
+        final String homeKey = sessionHome.getHomePath(serverSession);
+        final String homeDir = SEPARATOR + bucketName + SEPARATOR + homeKey;
+        final String jailKey = sessionJail.getJail(serverSession);
+        final S3Path unJailedPath = getUnJailedPath(remotePath, bucketName, homeKey, jailKey, homeDir);
         if (jailKey.isEmpty()) {
             log.trace(" <= resolved - unjailed: {}", unJailedPath);
             return unJailedPath;
         }
-        val jailDir = SEPARATOR + bucketName + SEPARATOR + jailKey;
-        val jailedPath = getJailedPath(unJailedPath, jailDir);
+        final String jailDir = SEPARATOR + bucketName + SEPARATOR + jailKey;
+        final Path jailedPath = getJailedPath(unJailedPath, jailDir);
         log.trace(" <= resolved - jailed: {}", jailedPath);
         return jailedPath;
     }
 
     private Path getJailedPath(final S3Path unjailedPath, final String jailDir) {
         val fileSystem = unjailedPath.getFileSystem();
-        val subJailKey = unjailedPath.toString()
+        val subJailKey = S3PathUtil.dirPath(unjailedPath)
                                      .substring(jailDir.length());
         return new S3Path(fileSystem, subJailKey);
     }
@@ -127,11 +127,11 @@ class JailedSftpSubsystem extends SftpSubsystem {
             final String remotePath, final String bucketName, final String homeKey, final String jailKey,
             final String homeDir
                                   ) {
-        val jailDir = getJailDir(bucketName, homeKey, homeDir, jailKey);
-        val userPath = getUserPath(remotePath, homeDir, jailDir);
-        val sourcePath = SelectorUtils.translateToLocalFileSystemPath(userPath, '/', fileSystem);
-        val cleanPath = cleanPath(sourcePath, bucketName);
-        val resolvedPath = defaultDir.resolve(cleanPath);
+        String jailDir = getJailDir(bucketName, homeKey, homeDir, jailKey);
+        String userPath = getUserPath(remotePath, homeDir, jailDir);
+        String sourcePath = SelectorUtils.translateToLocalFileSystemPath(userPath, '/', fileSystem);
+        String cleanPath = cleanPath(sourcePath, bucketName);
+        Path resolvedPath = defaultDir.resolve(cleanPath);
         return new S3Path(getSessionFileSystem(), resolvedPath.toString());
     }
 

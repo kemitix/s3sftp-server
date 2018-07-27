@@ -148,10 +148,10 @@ public class InvertedS3FileSystemProviderTest {
         final Properties props = new Properties();
         final Map<String, ?> env = new HashMap<>();
         //when
-        subject.overloadProperties(props, env);
+        subject.overloadPropertiesWithEnv(props, env, "");
         //then
         then(delegate).should()
-                      .overloadProperties(props, env);
+                      .overloadPropertiesWithEnv(props, env, "");
     }
 
     @Test

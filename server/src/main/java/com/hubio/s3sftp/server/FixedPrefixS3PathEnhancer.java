@@ -43,10 +43,10 @@ class FixedPrefixS3PathEnhancer implements S3PathEnhancer {
     @Override
     public S3Path apply(final S3Path path) {
         log.trace("FixedPrefixS3PathEnhancer('{}').apply('{}')", prefix, path);
-        if (path.toString()
-                .startsWith(prefix)) {
+        if (S3PathUtil.dirPath(path).startsWith(prefix)) {
             return path;
         }
-        return new S3Path(path.getFileSystem(), prefix + path.toString());
+        return new S3Path(path.getFileSystem(), prefix + S3PathUtil.dirPath(path));
     }
+
 }

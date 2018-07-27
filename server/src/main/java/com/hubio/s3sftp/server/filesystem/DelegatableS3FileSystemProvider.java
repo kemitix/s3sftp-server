@@ -70,7 +70,8 @@ class DelegatableS3FileSystemProvider extends S3FileSystemProvider implements S3
 
     @Override
     public void overloadProperties(final Properties props, final Map<String, ?> env) {
-        super.overloadProperties(props, env);
+        super.overloadPropertiesWithEnv(props, env, AmazonS3Factory.ACCESS_KEY);
+        super.overloadPropertiesWithEnv(props, env, AmazonS3Factory.SECRET_KEY);
     }
 
     @Override
