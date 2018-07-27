@@ -64,6 +64,11 @@
         </dependency>
         <!-- S3 Filesystem -->
         <dependency>
+            <groupId>com.amazonaws</groupId>
+            <artifactId>aws-java-sdk-s3</artifactId>
+            <version>${aws-java-sdk.version}</version>
+        </dependency>
+        <dependency>
             <!-- S3 filesystem provider for Java 7. -->
             <groupId>com.upplication</groupId>
             <artifactId>s3fs</artifactId>
