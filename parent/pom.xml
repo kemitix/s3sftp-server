@@ -34,6 +34,7 @@
         <lombok.version>1.18.0</lombok.version>
         <aws-java-sdk.version>1.11.375</aws-java-sdk.version>
         <guava.version>25.1-jre</guava.version>
+        <jackson-databind.version>2.9.6</jackson-databind.version>
     </properties>
 
     <inceptionYear>2017</inceptionYear>
@@ -136,6 +137,12 @@
             <dependency><!-- override version from s3fs to avoid security flaw -->
                 <groupId>com.google.guava</groupId>
                 <artifactId>guava</artifactId>
+                <version>${guava.version}</version>
+            </dependency>
+            <dependency><!-- override version from aws-java-sdk to avoid security flaw -->
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-databind</artifactId>
+                <version>${jackson-databind.version}</version>
             </dependency>
             <dependency><!-- override version from s3fs to avoid security flaw -->
                 <groupId>com.amazonaws</groupId>
