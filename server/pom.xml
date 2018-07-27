@@ -24,6 +24,7 @@
         <jacoco-class-line-covered-ratio>0</jacoco-class-line-covered-ratio>
         <jacoco-class-instruction-covered-ratio>0</jacoco-class-instruction-covered-ratio>
         <jacoco-class-missed-count-maximum>0</jacoco-class-missed-count-maximum>
+        <guava.version>25.1-jre</guava.version>
     </properties>
 
     <dependencies>
@@ -63,7 +64,12 @@
             <version>${bouncycastle.version}</version>
         </dependency>
         <!-- S3 Filesystem -->
-        <dependency>
+        <dependency><!-- override version from s3fs to avoid security flaw -->
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>${guava.version}</version>
+        </dependency>
+        <dependency><!-- override version from s3fs to avoid security flaw -->
             <groupId>com.amazonaws</groupId>
             <artifactId>aws-java-sdk-s3</artifactId>
             <version>${aws-java-sdk.version}</version>
