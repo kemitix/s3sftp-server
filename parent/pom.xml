@@ -52,7 +52,7 @@
         <map-builder.version>1.0.0</map-builder.version>
         <bouncycastle.version>1.54</bouncycastle.version>
         <s3fs.version>2.2.2</s3fs.version>
-        <assertj.version>3.10.0</assertj.version>
+        <assertj.version>3.11.0</assertj.version>
         <junit-hierarchicalcontextrunner.version>4.12.1</junit-hierarchicalcontextrunner.version>
         <mockito-java8.version>0.3.1</mockito-java8.version>
         <lombok.version>1.18.2</lombok.version>
