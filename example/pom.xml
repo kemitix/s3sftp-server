@@ -15,7 +15,7 @@
     <name>S3 SFTP Server (example)</name>
 
     <properties>
-        <spring-boot.version>1.5.14.RELEASE</spring-boot.version>
+        <spring-boot.version>2.0.4.RELEASE</spring-boot.version>
     </properties>
 
     <dependencies>
