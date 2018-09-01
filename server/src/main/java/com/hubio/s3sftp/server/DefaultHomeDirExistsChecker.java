@@ -66,8 +66,6 @@ class DefaultHomeDirExistsChecker implements HomeDirExistsChecker {
             return exists;
         } catch (IOException e) {
             log.warn(message, e);
-        } catch (Exception e) {
-            e.printStackTrace();
         }
         return false;
     }

@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.nio.file.Paths;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.doThrow;
@@ -76,11 +77,10 @@ public class DefaultHomeDirExistsCheckerTest {
     @Test
     public void shouldHandleIOException() throws Exception {
         //given
-        doThrow(IOException.class).when(sftpSubsystem)
-                                  .resolveFile(any());
-        //when
-        val result = subject.check(username, session);
+        doThrow(IOException.class).when(s3FilesystemFactory)
+                                  .createFileSystem(session);
         //then
-        assertThat(result).isFalse();
+        assertThatCode(() ->  subject.check(username, session))
+                .doesNotThrowAnyException();
     }
 }
