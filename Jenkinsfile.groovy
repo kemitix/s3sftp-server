@@ -36,7 +36,7 @@ pipeline {
         stage('Verify & Install') {
             steps {
                 withMaven(maven: 'maven', jdk: 'JDK 1.8') {
-                    sh "${mvn} -DskipTests install"
+                    sh "${mvn} -DskipTests failsafe:verify install"
                 }
             }
         }
