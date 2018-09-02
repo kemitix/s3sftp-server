@@ -17,7 +17,7 @@ public class FixedPrefixS3PathEnhancerTest {
 
     private String prefix = "/home";
     private S3FileSystem fileSystem = mock(S3FileSystem.class);
-    private FixedPrefixS3PathEnhancer subject = new FixedPrefixS3PathEnhancer(prefix);
+    private S3PathEnhancer subject = S3PathEnhancer.fixedPrefix(prefix);
 
     @Test
     public void shouldAlreadyStartWithPrefix() throws Exception {
