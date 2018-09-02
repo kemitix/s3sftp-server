@@ -48,7 +48,7 @@
         <kemitix-checkstyle.version>4.1.1</kemitix-checkstyle.version>
         <spring-boot.version>2.0.4.RELEASE</spring-boot.version>
         <digraph-dependency.basePackage>com.hubio.s3sftp</digraph-dependency.basePackage>
-        <apache-sshd.version>1.3.0</apache-sshd.version>
+        <apache-sshd.version>2.0.0</apache-sshd.version>
         <map-builder.version>1.0.0</map-builder.version>
         <bouncycastle.version>1.60</bouncycastle.version>
         <s3fs.version>2.2.2</s3fs.version>
