@@ -2,14 +2,17 @@ package com.hubio.s3sftp.server;
 
 import com.hubio.s3sftp.server.filesystem.UserFileSystemResolver;
 import lombok.val;
+import org.apache.sshd.server.subsystem.sftp.SftpErrorStatusDataHandler;
 import org.apache.sshd.server.subsystem.sftp.SftpEventListener;
 import org.apache.sshd.server.subsystem.sftp.SftpEventListenerManager;
+import org.apache.sshd.server.subsystem.sftp.SftpFileSystemAccessor;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 
 /**
  * Tests for {@link JailedSftpSubsystemFactory}.
@@ -18,32 +21,19 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 public class JailedSftpSubsystemFactoryTest {
 
-    private JailedSftpSubsystemFactory sftpSubsystemFactory;
+    private final SftpEventListener listener = mock(SftpEventListener.class);
+    private final SessionBucket sessionBucket = mock(SessionBucket.class);
+    private final SessionHome sessionHome = mock(SessionHome.class);
+    private final SessionJail sessionJail = mock(SessionJail.class);
+    private final UserFileSystemResolver userFileSystemResolver = mock(UserFileSystemResolver.class);
+    private final SftpFileSystemAccessor accessor = mock(SftpFileSystemAccessor.class);
+    private final SftpErrorStatusDataHandler errorStatusDataHandler = mock(SftpErrorStatusDataHandler.class);
 
-    @Mock
-    private SftpEventListener listener;
-
-    @Mock
-    private SessionBucket sessionBucket;
-
-    @Mock
-    private SessionHome sessionHome;
-
-    @Mock
-    private SessionJail sessionJail;
-
-    @Mock
-    private UserFileSystemResolver userFileSystemResolver;
-
-    @Before
-    public void setUp() throws Exception {
-        MockitoAnnotations.initMocks(this);
-        sftpSubsystemFactory =
-                new JailedSftpSubsystemFactory(sessionBucket, sessionHome, sessionJail, userFileSystemResolver);
-    }
+    private final JailedSftpSubsystemFactory sftpSubsystemFactory = new JailedSftpSubsystemFactory(
+            sessionBucket, sessionHome, sessionJail, userFileSystemResolver, accessor, errorStatusDataHandler);
 
     @Test
-    public void create() throws Exception {
+    public void create() {
         //given
         sftpSubsystemFactory.addSftpEventListener(listener);
         //when

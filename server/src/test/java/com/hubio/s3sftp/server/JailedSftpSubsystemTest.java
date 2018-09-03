@@ -9,13 +9,10 @@ import org.apache.sshd.common.Factory;
 import org.apache.sshd.common.random.Random;
 import org.apache.sshd.server.ServerFactoryManager;
 import org.apache.sshd.server.session.ServerSession;
-import org.apache.sshd.server.subsystem.sftp.AbstractSftpEventListenerAdapter;
-import org.apache.sshd.server.subsystem.sftp.UnsupportedAttributePolicy;
+import org.apache.sshd.server.subsystem.sftp.*;
 import org.assertj.core.api.WithAssertions;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -27,6 +24,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Mockito.mock;
@@ -39,30 +37,25 @@ import static org.mockito.Mockito.mock;
 @RunWith(HierarchicalContextRunner.class)
 public class JailedSftpSubsystemTest implements WithAssertions {
 
-    private ExecutorService executorService = mock(ExecutorService.class);
-    private SessionBucket sessionBucket = mock(SessionBucket.class);
-    private SessionHome sessionHome = mock(SessionHome.class);
-    private SessionJail sessionJail = mock(SessionJail.class);
-    private UserFileSystemResolver userFileSystemResolver = mock(UserFileSystemResolver.class);
-    private ServerSession serverSession = mock(ServerSession.class);
-    private ServerFactoryManager serverFactoryManager = mock(ServerFactoryManager.class);
-    private Random randomizer = mock(Random.class);
-    private S3FileSystem s3FileSystem = mock(S3FileSystem.class);
-
-    @Mock
-    private Factory<Random> randomFactory;
-
-    private SftpSession sftpSession;
+    private final ExecutorService executorService = mock(ExecutorService.class);
+    private final SessionBucket sessionBucket = mock(SessionBucket.class);
+    private final SessionHome sessionHome = mock(SessionHome.class);
+    private final SessionJail sessionJail = mock(SessionJail.class);
+    private final UserFileSystemResolver userFileSystemResolver = mock(UserFileSystemResolver.class);
+    private final ServerSession serverSession = mock(ServerSession.class);
+    private final ServerFactoryManager serverFactoryManager = mock(ServerFactoryManager.class);
+    private final Random randomizer = mock(Random.class);
+    private final S3FileSystem s3FileSystem = mock(S3FileSystem.class);
+    private final Factory<Random> randomFactory = mock(Factory.class);
+    private final SftpFileSystemAccessor accessor = mock(SftpFileSystemAccessor.class);
+    private final SftpErrorStatusDataHandler errorStatusDataHandler = mock(SftpErrorStatusDataHandler.class);
 
     private JailedSftpSubsystem sftpSubsystem =
             new JailedSftpSubsystem(
                     executorService, false, UnsupportedAttributePolicy.Warn, sessionBucket,
-                    sessionHome, sessionJail, userFileSystemResolver);
+                    sessionHome, sessionJail, userFileSystemResolver, accessor, errorStatusDataHandler);
 
-    @Before
-    public void setUp() throws Exception {
-        MockitoAnnotations.initMocks(this);
-    }
+    private SftpSession sftpSession;
 
     @Test
     public void shouldRemoveOnlyPermissionsFromAttributes() throws Exception {
@@ -93,13 +86,17 @@ public class JailedSftpSubsystemTest implements WithAssertions {
         private String bucket;
 
         @Before
-        public void setUp() throws Exception {
+        public void setUp() {
             username = "bob";
             bucket = "bucket";
             given(serverSession.getFactoryManager()).willReturn(serverFactoryManager);
             given(serverFactoryManager.getRandomFactory()).willReturn(randomFactory);
             given(randomFactory.create()).willReturn(randomizer);
             given(serverSession.getUsername()).willReturn(username);
+            given(serverSession.getIntProperty(SftpSubsystem.FILE_HANDLE_SIZE, SftpSubsystem.DEFAULT_FILE_HANDLE_SIZE))
+                    .willReturn(SftpSubsystem.DEFAULT_FILE_HANDLE_SIZE);
+            given(serverSession.getIntProperty(SftpSubsystem.MAX_FILE_HANDLE_RAND_ROUNDS, SftpSubsystem.DEFAULT_FILE_HANDLE_ROUNDS))
+                    .willReturn(SftpSubsystem.DEFAULT_FILE_HANDLE_ROUNDS);
             sftpSubsystem.setSession(serverSession);
             sftpSession = SftpSession.of(serverSession);
             given(sessionBucket.getBucket(anyObject())).willReturn(bucket);
@@ -112,7 +109,7 @@ public class JailedSftpSubsystemTest implements WithAssertions {
         public class Root {
 
             @Before
-            public void setUp() throws Exception {
+            public void setUp() {
                 given(sessionHome.getHomePath(sftpSession)).willReturn("");
             }
 
@@ -168,7 +165,7 @@ public class JailedSftpSubsystemTest implements WithAssertions {
         public class Home {
 
             @Before
-            public void setUp() throws Exception {
+            public void setUp() {
                 given(sessionHome.getHomePath(anyObject())).willReturn(username);
             }
 
@@ -244,7 +241,7 @@ public class JailedSftpSubsystemTest implements WithAssertions {
         public class Jailed {
 
             @Before
-            public void setUp() throws Exception {
+            public void setUp() {
                 given(sessionHome.getHomePath(anyObject())).willReturn(String.format("users/%s", username));
                 given(sessionJail.getJail(anyObject())).willReturn("users");
                 // i.e. user should only see their own username as the visible path
