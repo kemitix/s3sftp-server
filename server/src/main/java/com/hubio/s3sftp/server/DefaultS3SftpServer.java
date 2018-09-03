@@ -29,6 +29,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.apache.sshd.common.NamedFactory;
+import org.apache.sshd.common.keyprovider.FileKeyPairProvider;
 import org.apache.sshd.common.keyprovider.KeyPairProvider;
 import org.apache.sshd.server.SshServer;
 import org.apache.sshd.server.auth.UserAuth;
@@ -36,6 +37,8 @@ import org.apache.sshd.server.auth.password.PasswordAuthenticator;
 import org.apache.sshd.server.auth.password.UserAuthPasswordFactory;
 import org.apache.sshd.server.auth.pubkey.PublickeyAuthenticator;
 import org.apache.sshd.server.auth.pubkey.UserAuthPublicKeyFactory;
+import org.apache.sshd.server.subsystem.sftp.SftpErrorStatusDataHandler;
+import org.apache.sshd.server.subsystem.sftp.SftpFileSystemAccessor;
 
 import java.io.File;
 import java.io.IOException;
@@ -70,7 +73,7 @@ class DefaultS3SftpServer implements S3SftpServer {
     private static KeyPairProvider keyPairProviderFromFile(final String algorithm, final File privateHostKeyFile)
             throws Exception {
         // load private key into a key pair provider
-        return SshServer.setupServerKeys(null, algorithm, 0, Collections.singletonList(privateHostKeyFile.toString()));
+        return new FileKeyPairProvider(privateHostKeyFile.toPath());
     }
 
     @Override
@@ -84,8 +87,11 @@ class DefaultS3SftpServer implements S3SftpServer {
         val sessionBucket = configuration.getSessionBucket();
         val sessionHome = configuration.getSessionHome();
         val sessionJail = configuration.getSessionJail();
+        final SftpFileSystemAccessor accessor = new SftpFileSystemAccessor() {};
+        final SftpErrorStatusDataHandler errorStatusDataHandler = new SftpErrorStatusDataHandler() {};
         val sftpSubsystemFactory =
-                new JailedSftpSubsystemFactory(sessionBucket, sessionHome, sessionJail, sessionFileSystemResolver);
+                new JailedSftpSubsystemFactory(sessionBucket, sessionHome, sessionJail, sessionFileSystemResolver,
+                        accessor, errorStatusDataHandler);
         sshServer.setSubsystemFactories(Collections.singletonList(sftpSubsystemFactory));
         // file system
         val fileSystemFactory =

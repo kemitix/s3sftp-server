@@ -27,7 +27,9 @@ import com.hubio.s3sftp.server.filesystem.UserFileSystemResolver;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
-import org.apache.sshd.server.Command;
+import org.apache.sshd.server.command.Command;
+import org.apache.sshd.server.subsystem.sftp.SftpErrorStatusDataHandler;
+import org.apache.sshd.server.subsystem.sftp.SftpFileSystemAccessor;
 import org.apache.sshd.server.subsystem.sftp.SftpSubsystemFactory;
 
 /**
@@ -41,20 +43,18 @@ import org.apache.sshd.server.subsystem.sftp.SftpSubsystemFactory;
 class JailedSftpSubsystemFactory extends SftpSubsystemFactory {
 
     private final SessionBucket sessionBucket;
-
     private final SessionHome sessionHome;
-
     private final SessionJail sessionJail;
-
     private final UserFileSystemResolver fileSystemProvider;
+    private final SftpFileSystemAccessor accessor;
+    private final SftpErrorStatusDataHandler errorStatusDataHandler;
 
     @Override
     public Command create() {
         log.trace("create()");
         val subsystem =
                 new JailedSftpSubsystem(getExecutorService(), isShutdownOnExit(), getUnsupportedAttributePolicy(),
-                                        sessionBucket, sessionHome, sessionJail, fileSystemProvider
-                );
+                        sessionBucket, sessionHome, sessionJail, fileSystemProvider, accessor, errorStatusDataHandler);
         getRegisteredListeners().forEach(subsystem::addSftpEventListener);
         log.trace(" <= {}", subsystem);
         return subsystem;

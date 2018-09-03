@@ -29,6 +29,8 @@ import com.upplication.s3fs.S3Path;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.apache.sshd.common.util.SelectorUtils;
+import org.apache.sshd.server.subsystem.sftp.SftpErrorStatusDataHandler;
+import org.apache.sshd.server.subsystem.sftp.SftpFileSystemAccessor;
 import org.apache.sshd.server.subsystem.sftp.SftpSubsystem;
 import org.apache.sshd.server.subsystem.sftp.UnsupportedAttributePolicy;
 
@@ -60,7 +62,6 @@ class JailedSftpSubsystem extends SftpSubsystem {
 
     /**
      * Constructor.
-     *
      * @param executorService            The Executor Service
      * @param shutdownOnExit             Controls stopping the executor service when server exits
      * @param unsupportedAttributePolicy The policy for unsupported attributes
@@ -68,14 +69,21 @@ class JailedSftpSubsystem extends SftpSubsystem {
      * @param sessionHome                The session home path mapper
      * @param sessionJail                The session jail mapper
      * @param userFileSystemResolver     The session Filesystem resolver
+     * @param accessor                   The {@link SftpFileSystemAccessor} to use for opening files and directories
+     * @param errorStatusDataHandler     The (never {@code null}) {@link SftpErrorStatusDataHandler} to use when
+     *                                   generating failed commands error messages
      */
     JailedSftpSubsystem(
-            final ExecutorService executorService, final boolean shutdownOnExit,
-            final UnsupportedAttributePolicy unsupportedAttributePolicy, final SessionBucket sessionBucket,
-            final SessionHome sessionHome, final SessionJail sessionJail,
-            final UserFileSystemResolver userFileSystemResolver
-                       ) {
-        super(executorService, shutdownOnExit, unsupportedAttributePolicy);
+            final ExecutorService executorService,
+            final boolean shutdownOnExit,
+            final UnsupportedAttributePolicy unsupportedAttributePolicy,
+            final SessionBucket sessionBucket,
+            final SessionHome sessionHome,
+            final SessionJail sessionJail,
+            final UserFileSystemResolver userFileSystemResolver,
+            final SftpFileSystemAccessor accessor,
+            final SftpErrorStatusDataHandler errorStatusDataHandler) {
+        super(executorService, shutdownOnExit, unsupportedAttributePolicy, accessor, errorStatusDataHandler);
         this.sessionBucket = sessionBucket;
         this.sessionHome = sessionHome;
         this.sessionJail = sessionJail;
