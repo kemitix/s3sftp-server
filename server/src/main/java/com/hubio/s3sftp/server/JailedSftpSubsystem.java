@@ -29,6 +29,7 @@ import com.upplication.s3fs.S3Path;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.apache.sshd.common.util.SelectorUtils;
+import org.apache.sshd.common.util.threads.CloseableExecutorService;
 import org.apache.sshd.server.subsystem.sftp.SftpErrorStatusDataHandler;
 import org.apache.sshd.server.subsystem.sftp.SftpFileSystemAccessor;
 import org.apache.sshd.server.subsystem.sftp.SftpSubsystem;
@@ -38,7 +39,6 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Map;
-import java.util.concurrent.ExecutorService;
 
 /**
  * {@link SftpSubsystem} where the user is jailed within a subdirectory specified by a {@link SessionHome}.
@@ -63,7 +63,6 @@ class JailedSftpSubsystem extends SftpSubsystem {
     /**
      * Constructor.
      * @param executorService            The Executor Service
-     * @param shutdownOnExit             Controls stopping the executor service when server exits
      * @param unsupportedAttributePolicy The policy for unsupported attributes
      * @param sessionBucket              The session bucket mapper
      * @param sessionHome                The session home path mapper
@@ -74,8 +73,7 @@ class JailedSftpSubsystem extends SftpSubsystem {
      *                                   generating failed commands error messages
      */
     JailedSftpSubsystem(
-            final ExecutorService executorService,
-            final boolean shutdownOnExit,
+            final CloseableExecutorService executorService,
             final UnsupportedAttributePolicy unsupportedAttributePolicy,
             final SessionBucket sessionBucket,
             final SessionHome sessionHome,
@@ -83,7 +81,7 @@ class JailedSftpSubsystem extends SftpSubsystem {
             final UserFileSystemResolver userFileSystemResolver,
             final SftpFileSystemAccessor accessor,
             final SftpErrorStatusDataHandler errorStatusDataHandler) {
-        super(executorService, shutdownOnExit, unsupportedAttributePolicy, accessor, errorStatusDataHandler);
+        super(executorService, unsupportedAttributePolicy, accessor, errorStatusDataHandler);
         this.sessionBucket = sessionBucket;
         this.sessionHome = sessionHome;
         this.sessionJail = sessionJail;
