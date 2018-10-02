@@ -7,6 +7,7 @@ import de.bechte.junit.runners.context.HierarchicalContextRunner;
 import lombok.val;
 import org.apache.sshd.common.Factory;
 import org.apache.sshd.common.random.Random;
+import org.apache.sshd.common.util.threads.CloseableExecutorService;
 import org.apache.sshd.server.ServerFactoryManager;
 import org.apache.sshd.server.session.ServerSession;
 import org.apache.sshd.server.subsystem.sftp.*;
@@ -34,7 +35,7 @@ import static org.mockito.Mockito.mock;
 @RunWith(HierarchicalContextRunner.class)
 public class JailedSftpSubsystemTest implements WithAssertions {
 
-    private final ExecutorService executorService = mock(ExecutorService.class);
+    private final CloseableExecutorService executorService = mock(CloseableExecutorService.class);
     private final SessionBucket sessionBucket = mock(SessionBucket.class);
     private final SessionHome sessionHome = mock(SessionHome.class);
     private final SessionJail sessionJail = mock(SessionJail.class);
@@ -49,7 +50,7 @@ public class JailedSftpSubsystemTest implements WithAssertions {
 
     private JailedSftpSubsystem sftpSubsystem =
             new JailedSftpSubsystem(
-                    executorService, false, UnsupportedAttributePolicy.Warn, sessionBucket,
+                    executorService, UnsupportedAttributePolicy.Warn, sessionBucket,
                     sessionHome, sessionJail, userFileSystemResolver, accessor, errorStatusDataHandler);
 
     private SftpSession sftpSession;

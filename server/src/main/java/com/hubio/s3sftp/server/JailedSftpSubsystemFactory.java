@@ -53,7 +53,7 @@ class JailedSftpSubsystemFactory extends SftpSubsystemFactory {
     public Command create() {
         log.trace("create()");
         val subsystem =
-                new JailedSftpSubsystem(getExecutorService(), isShutdownOnExit(), getUnsupportedAttributePolicy(),
+                new JailedSftpSubsystem(getExecutorService(), getUnsupportedAttributePolicy(),
                         sessionBucket, sessionHome, sessionJail, fileSystemProvider, accessor, errorStatusDataHandler);
         getRegisteredListeners().forEach(subsystem::addSftpEventListener);
         log.trace(" <= {}", subsystem);
