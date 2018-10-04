@@ -1,5 +1,6 @@
 package com.hubio.s3sftp.server.filesystem;
 
+import com.amazonaws.services.s3.AmazonS3;
 import com.upplication.s3fs.AmazonS3Factory;
 import com.upplication.s3fs.S3FileSystem;
 import com.upplication.s3fs.S3FileSystemProvider;
@@ -12,9 +13,9 @@ import java.net.URI;
 import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
-import java.util.stream.Collectors;
 
 import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.mock;
 
 public class S3SftpFileSystemProviderDecoratorTest implements WithAssertions {
@@ -23,7 +24,17 @@ public class S3SftpFileSystemProviderDecoratorTest implements WithAssertions {
     private final S3SftpFileSystemProviderDecorator decorator = new S3SftpFileSystemProviderDecorator(provider);
 
     @Test
-    public void whenGetS3FlieSystemProviderThenDelegate() {
+    public void whenSetAmazonS3ThenDelegate() {
+        //given
+        final AmazonS3 amazonS3 = mock(AmazonS3.class);
+        //when
+        decorator.setAmazonS3(amazonS3);
+        //then
+        then(provider).should().setAmazonS3(amazonS3);
+    }
+
+    @Test
+    public void whenGetS3FileSystemProviderThenDelegate() {
         //given
         final S3FileSystemProvider expected = mock(S3FileSystemProvider.class);
         given(provider.getS3FileSystemProvider()).willReturn(expected);
