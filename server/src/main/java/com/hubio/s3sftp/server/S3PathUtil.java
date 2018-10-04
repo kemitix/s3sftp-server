@@ -2,14 +2,14 @@ package com.hubio.s3sftp.server;
 
 import com.upplication.s3fs.S3FileStore;
 import com.upplication.s3fs.S3Path;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 
 import java.util.Optional;
 
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+@SuppressWarnings("hideutilityclassconstructor")
 final class S3PathUtil {
-
-    private S3PathUtil() {
-        throw new UnsupportedOperationException();
-    }
 
     /**
      * Extracts the directory path from an S3Path.

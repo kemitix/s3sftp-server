@@ -6,6 +6,7 @@ import com.upplication.s3fs.S3FileSystem;
 import com.upplication.s3fs.util.Cache;
 import lombok.val;
 import me.andrz.builder.map.MapBuilder;
+import net.kemitix.mon.result.Result;
 import org.apache.sshd.common.io.IoSession;
 import org.apache.sshd.common.session.Session;
 import org.junit.Before;
@@ -99,7 +100,7 @@ public class InvertedS3FileSystemProviderTest {
         final URI uri = URI.create("s3://uri");
         final Map<String, String> env = new HashMap<>();
         final S3FileSystem expected = mock(S3FileSystem.class);
-        given(delegate.newFileSystem(eq(uri), any())).willReturn(expected);
+        given(delegate.newFileSystem(eq(uri), any())).willReturn(Result.ok(expected));
         //when
         val result = subject.newFileSystem(uri, env);
         //then

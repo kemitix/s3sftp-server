@@ -24,6 +24,7 @@
 package com.hubio.s3sftp.server;
 
 import lombok.NonNull;
+import org.apache.sshd.server.SshServer;
 import org.apache.sshd.server.auth.pubkey.PublickeyAuthenticator;
 
 import java.util.Map;
@@ -65,7 +66,7 @@ public interface S3SftpServer {
      * @return The new Server
      */
     static S3SftpServer using(final S3SftpServerConfiguration configuration) {
-        return new DefaultS3SftpServer(configuration);
+        return new DefaultS3SftpServer(SshServer.setUpDefaultServer(), configuration);
     }
 
     /**

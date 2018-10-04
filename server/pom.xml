@@ -21,6 +21,10 @@
 
     <dependencies>
         <dependency>
+            <groupId>net.kemitix</groupId>
+            <artifactId>mon</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <scope>provided</scope>

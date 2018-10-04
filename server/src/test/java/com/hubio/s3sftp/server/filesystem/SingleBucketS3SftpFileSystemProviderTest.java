@@ -4,6 +4,7 @@ import com.hubio.s3sftp.server.S3SftpServer;
 import com.hubio.s3sftp.server.filesystem.FilteredS3FileSystem;
 import com.hubio.s3sftp.server.filesystem.S3SftpFileSystemProvider;
 import com.hubio.s3sftp.server.filesystem.SingleBucketS3SftpFileSystemProvider;
+import com.upplication.s3fs.S3FileSystem;
 import lombok.val;
 import me.andrz.builder.map.MapBuilder;
 import org.assertj.core.api.SoftAssertions;
@@ -77,7 +78,7 @@ public class SingleBucketS3SftpFileSystemProviderTest {
     }
 
     @Test
-    public void newFileSystem() throws Exception {
+    public void newFileSystem() throws Throwable {
         //given
         val hostname = "uri";
         val uri = URI.create("s3://" + hostname);
@@ -87,7 +88,7 @@ public class SingleBucketS3SftpFileSystemProviderTest {
         val key = "uribucket";
         given(delegate.getFileSystemKey(any(), eq(props))).willReturn(key);
         //when
-        val result = subject.newFileSystem(uri, props);
+        val result = subject.newFileSystem(uri, props).orElseThrow();
         //then
         SoftAssertions.assertSoftly(s -> {
             s.assertThat(result)

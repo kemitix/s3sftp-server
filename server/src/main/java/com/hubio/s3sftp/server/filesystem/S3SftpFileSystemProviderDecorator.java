@@ -29,6 +29,7 @@ import com.upplication.s3fs.S3FileSystem;
 import com.upplication.s3fs.S3FileSystemProvider;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import net.kemitix.mon.result.Result;
 import org.apache.sshd.common.session.Session;
 
 import java.io.IOException;
@@ -293,7 +294,7 @@ class S3SftpFileSystemProviderDecorator implements S3SftpFileSystemProvider {
     }
 
     @Override
-    public S3FileSystem newFileSystem(final URI uri, final Properties props) {
+    public Result<S3FileSystem> newFileSystem(final URI uri, final Properties props) {
         return provider.newFileSystem(uri, props);
     }
 

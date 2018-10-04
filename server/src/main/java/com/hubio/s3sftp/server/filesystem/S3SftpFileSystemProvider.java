@@ -27,6 +27,7 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.upplication.s3fs.AmazonS3Factory;
 import com.upplication.s3fs.S3FileSystem;
 import com.upplication.s3fs.S3FileSystemProvider;
+import net.kemitix.mon.result.Result;
 import org.apache.sshd.common.session.Session;
 
 import java.io.IOException;
@@ -356,7 +357,7 @@ public interface S3SftpFileSystemProvider {
      *
      * @return A new file system
      */
-    S3FileSystem newFileSystem(URI uri, Properties props);
+    Result<S3FileSystem> newFileSystem(URI uri, Properties props);
 
     /**
      * Constructs a new {@code FileSystem} to access the contents of a file as a file system.

@@ -57,7 +57,7 @@ import java.util.Collections;
 @RequiredArgsConstructor(access = AccessLevel.PACKAGE)
 class DefaultS3SftpServer implements S3SftpServer {
 
-    private final SshServer sshServer = SshServer.setUpDefaultServer();
+    private final SshServer sshServer;
 
     private final S3SftpServerConfiguration configuration;
 
@@ -79,8 +79,7 @@ class DefaultS3SftpServer implements S3SftpServer {
     @Override
     public void start() {
         validateSessionMapping();
-        val port = configuration.getPort();
-        sshServer.setPort(port);
+        sshServer.setPort(configuration.getPort());
         loadHostKey();
         // sftp subsystem
         val sessionFileSystemResolver = FileSystemProviderFactory.userResolver();
@@ -106,7 +105,7 @@ class DefaultS3SftpServer implements S3SftpServer {
         } catch (IOException e) {
             throw new S3SftpServerStartException("Could not start server", e);
         }
-        log.info("S3 SFTP Server started on port {}", port);
+        log.info("S3 SFTP Server started on port {}", configuration.getPort());
     }
 
     /**

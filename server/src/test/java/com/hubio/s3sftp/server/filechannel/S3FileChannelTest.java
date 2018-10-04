@@ -8,11 +8,13 @@ import org.junit.rules.ExpectedException;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.SeekableByteChannel;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.verify;
 
 /**
@@ -201,5 +203,13 @@ public class S3FileChannelTest {
     public void writeByteBufferToPosition() throws Exception {
         expectUnsupportedOperationException();
         wrapper.write(src, 456L);
+    }
+
+    @Test
+    public void whenCloseChannelThenByteChannelIsClosed() throws IOException {
+        //when
+        wrapper.implCloseChannel();
+        //then
+        then(content).should().close();
     }
 }

@@ -23,14 +23,15 @@
 
 package com.hubio.s3sftp.server.filesystem;
 
+import com.amazonaws.services.s3.AmazonS3;
 import com.hubio.s3sftp.server.S3SftpServer;
 import com.upplication.s3fs.S3FileSystem;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
+import net.kemitix.mon.result.Result;
 import org.apache.http.client.utils.URIBuilder;
 
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.nio.file.FileSystem;
 import java.util.Map;
 import java.util.Properties;
@@ -64,25 +65,25 @@ class SingleBucketS3SftpFileSystemProvider extends S3SftpFileSystemProviderDecor
     }
 
     @Override
-    public S3FileSystem newFileSystem(final URI uri, final Properties props) {
+    public Result<S3FileSystem> newFileSystem(final URI uri, final Properties props) {
         log.trace("createFileSystem({}, {})", uri, props);
         if (!props.containsKey(S3SftpServer.BUCKET)) {
             throw new IllegalArgumentException("Bucket not specified");
         }
         val bucketName = props.getProperty(S3SftpServer.BUCKET);
         log.debug("Creating filesystem mapping for bucket '{}' to {}", bucketName, uri);
-        try {
-            val fileSystemKey = getFileSystemKey(new URIBuilder(uri).setPath(bucketName)
-                                                                    .build(), props);
-            val amazonS3 = getAmazonS3(uri, props);
-            val provider = new InvertedS3FileSystemProvider(this);
-            val fileSystem = new FilteredS3FileSystem(provider, fileSystemKey, amazonS3, uri.getHost(), bucketName);
-            log.trace(" <= fileSystem: {}", fileSystem);
-            return fileSystem;
-        } catch (final URISyntaxException e) {
-            e.printStackTrace();
-            return null;
-        }
+        AmazonS3 amazonS3 = getAmazonS3(uri, props);
+        InvertedS3FileSystemProvider provider = new InvertedS3FileSystemProvider(this);
+
+        return createFileSystemUri(uri, bucketName)
+                .map(fileSystemUri -> getFileSystemKey(fileSystemUri, props))
+                .map(fileSystemKey -> new FilteredS3FileSystem(provider, fileSystemKey, amazonS3, uri.getHost(), bucketName))
+                .peek(fileSystem -> log.trace(" <= fileSystem: {}", fileSystem))
+                .map(f -> (S3FileSystem) f);
+    }
+
+    private static Result<URI> createFileSystemUri(final URI uri, final String bucketName) {
+        return Result.of(() -> new URIBuilder(uri).setPath(bucketName).build());
     }
 
     @Override
@@ -91,6 +92,6 @@ class SingleBucketS3SftpFileSystemProvider extends S3SftpFileSystemProviderDecor
         if (fileSystemExists(uri, env)) {
             return super.getFileSystem(uri, env);
         }
-        return newFileSystem(uri, mapAsProperties(env));
+        return newFileSystem(uri, mapAsProperties(env)).orElseThrowUnchecked();
     }
 }
