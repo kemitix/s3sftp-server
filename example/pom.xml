@@ -61,6 +61,22 @@
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <version>${spring-boot.version}</version>
             </plugin>
+
+            <plugin>
+                <groupId>io.repaint.maven</groupId>
+                <artifactId>tiles-maven-plugin</artifactId>
+                <version>${tiles-maven-plugin.version}</version>
+                <extensions>true</extensions>
+                <configuration>
+                    <tiles>
+                        <tile>net.kemitix.tiles:maven-plugins:${kemitix-tiles.version}</tile>
+                        <tile>net.kemitix.tiles:enforcer:${kemitix-tiles.version}</tile>
+                        <tile>net.kemitix.tiles:compiler-jdk-8:${kemitix-tiles.version}</tile>
+                        <tile>net.kemitix.tiles:huntbugs:${kemitix-tiles.version}</tile>
+                        <tile>net.kemitix.tiles:pmd:${kemitix-tiles.version}</tile>
+                    </tiles>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
 

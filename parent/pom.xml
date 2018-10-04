@@ -61,30 +61,6 @@
         <mon.version>1.1.0</mon.version>
     </properties>
 
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>io.repaint.maven</groupId>
-                <artifactId>tiles-maven-plugin</artifactId>
-                <version>${tiles-maven-plugin.version}</version>
-                <extensions>true</extensions>
-                <configuration>
-                    <tiles>
-                        <tile>net.kemitix.tiles:maven-plugins:${kemitix-tiles.version}</tile>
-                        <tile>net.kemitix.tiles:enforcer:${kemitix-tiles.version}</tile>
-                        <tile>net.kemitix.tiles:compiler-jdk-8:${kemitix-tiles.version}</tile>
-                        <tile>net.kemitix.tiles:huntbugs:${kemitix-tiles.version}</tile>
-                        <tile>net.kemitix.tiles:pmd:${kemitix-tiles.version}</tile>
-                        <tile>net.kemitix.tiles:digraph:${kemitix-tiles.version}</tile>
-                        <tile>net.kemitix.tiles:testing:${kemitix-tiles.version}</tile>
-                        <tile>net.kemitix.tiles:coverage:${kemitix-tiles.version}</tile>
-                        <!--<tile>net.kemitix.checkstyle:tile:${kemitix-checkstyle.version}</tile>-->
-                    </tiles>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
-
     <dependencyManagement>
         <dependencies>
             <dependency>
