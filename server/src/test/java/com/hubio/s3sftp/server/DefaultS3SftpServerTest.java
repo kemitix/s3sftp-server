@@ -1,6 +1,8 @@
 package com.hubio.s3sftp.server;
 
 import lombok.val;
+import org.apache.sshd.server.SshServer;
+import org.apache.sshd.server.auth.password.PasswordAuthenticator;
 import org.apache.sshd.server.auth.pubkey.AcceptAllPublickeyAuthenticator;
 import org.apache.sshd.server.session.ServerSession;
 import org.hamcrest.core.IsInstanceOf;
@@ -20,7 +22,12 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.then;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
 
 /**
  * Tests for {@link DefaultS3SftpServer}.
@@ -264,14 +271,32 @@ public class DefaultS3SftpServerTest {
         S3SftpServer.perUserHome(null);
     }
 
-    //    @Test
-    //    public void builderToString() {
-    //        //given
-    //        val builder = S3SftpServer.builder()
-    //                .port(200);
-    //        //when
-    //        val result = builder.toString();
-    //        //then
-    //        assertThat(result).contains("(port=200,");
-    //    }
+    @Test
+    public void whenConfigureAuthenticateionWithPasswordThenAddPasswordFactoryInstance() {
+        //given
+        final AuthenticationProvider authenticationProvider = mock(MyPasswordAuthenticator.class);
+        final S3SftpServerConfiguration configuration = new S3SftpServerConfiguration(
+                2000, "hka", "hkp", new File("hkfp"),
+                authenticationProvider, sessionBucket, sessionHome, SftpSession::getUsername, "uri");
+        final SshServer sshServer = mock(SshServer.class);
+        final DefaultS3SftpServer server = new DefaultS3SftpServer(sshServer, configuration);
+        //when
+        server.start();
+        //then
+        then(sshServer).should().setPasswordAuthenticator(any());
+    }
+
+    @Test
+    public void whenStopWhereIOExceptionThenServerStopException() throws IOException {
+        //given
+        final SshServer sshServer = mock(SshServer.class);
+        final DefaultS3SftpServer s3SftpServer = new DefaultS3SftpServer(sshServer, mock(S3SftpServerConfiguration.class));
+        doThrow(IOException.class).when(sshServer).stop();
+        //then
+        assertThatThrownBy(() -> s3SftpServer.stop())
+                .isInstanceOf(S3SftpServerStopException.class);
+    }
+
+    private interface MyPasswordAuthenticator extends AuthenticationProvider, PasswordAuthenticator {
+    }
 }

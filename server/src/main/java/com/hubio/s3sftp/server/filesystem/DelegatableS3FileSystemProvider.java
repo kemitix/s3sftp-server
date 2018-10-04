@@ -32,6 +32,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
+import net.kemitix.mon.result.Result;
 import org.apache.sshd.common.session.Session;
 
 import java.net.URI;
@@ -113,11 +114,11 @@ class DelegatableS3FileSystemProvider extends S3FileSystemProvider implements S3
     }
 
     @Override
-    public S3FileSystem newFileSystem(final URI uri, final Properties props) {
+    public Result<S3FileSystem> newFileSystem(final URI uri, final Properties props) {
         val env = new HashMap<String, String>();
         props.stringPropertyNames()
              .forEach(prop -> env.put(prop, props.getProperty(prop)));
-        return (S3FileSystem) super.newFileSystem(uri, env);
+        return Result.ok((S3FileSystem) super.newFileSystem(uri, env));
     }
 
     @Override

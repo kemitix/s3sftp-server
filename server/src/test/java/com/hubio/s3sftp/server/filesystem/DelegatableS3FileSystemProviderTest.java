@@ -1,9 +1,10 @@
 package com.hubio.s3sftp.server.filesystem;
 
 import com.amazonaws.services.s3.AmazonS3;
-import com.hubio.s3sftp.server.filesystem.DelegatableS3FileSystemProvider;
 import com.upplication.s3fs.AmazonS3Factory;
+import com.upplication.s3fs.S3FileSystem;
 import lombok.val;
+import net.kemitix.mon.result.Result;
 import org.apache.sshd.common.session.Session;
 import org.junit.Before;
 import org.junit.Test;
@@ -11,10 +12,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.net.URI;
-import java.util.AbstractMap;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -162,12 +160,30 @@ public class DelegatableS3FileSystemProviderTest {
     @Test
     public void newFileSystem() throws Exception {
         //given
-        final URI uri = URI.create("s3://uri");
+        final URI uri = URI.create("s3://uri1");
         final Properties props = new Properties();
         //when
-        val result = subject.newFileSystem(uri, props);
+        final Result<S3FileSystem> result = subject.newFileSystem(uri, props);
         //then
-        assertThat(result).isNotNull();
+        assertThat(result.isOkay()).isTrue();
+    }
+
+    @Test
+    public void newFileSystemWithProperties() throws Exception {
+        //given
+        final String hostname = UUID.randomUUID().toString();
+        final String accessKey = UUID.randomUUID().toString();
+        final String secretKey = UUID.randomUUID().toString();
+        final URI uri = URI.create("s3://" + hostname);
+        final Properties props = new Properties();
+        props.setProperty(AmazonS3Factory.ACCESS_KEY, accessKey);
+        props.setProperty(AmazonS3Factory.SECRET_KEY, secretKey);
+        //when
+        final Result<S3FileSystem> result = subject.newFileSystem(uri, props);
+        //then
+        final S3FileSystem s3FileSystem = result.orElseThrowUnchecked();
+        assertThat(s3FileSystem.getKey()).contains(accessKey);
+        assertThat(s3FileSystem.getKey()).contains(hostname);
     }
 
     @Test
