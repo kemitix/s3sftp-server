@@ -24,8 +24,8 @@ import java.nio.file.StandardOpenOption;
 import java.util.EnumSet;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 
 /**
@@ -47,7 +47,7 @@ public class FileChannelS3SftpFileSystemProviderTest {
     private Session session;
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         MockitoAnnotations.initMocks(this);
         subject = FileSystemProviderMother.fileChannelProvider(session);
 

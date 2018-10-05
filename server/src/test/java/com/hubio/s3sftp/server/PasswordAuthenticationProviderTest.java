@@ -9,8 +9,8 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Matchers.any;
 
 /**
  * Tests for {@link }.
@@ -30,7 +30,7 @@ public class PasswordAuthenticationProviderTest {
     private HomeDirExistsChecker homeDirExistsChecker;
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         MockitoAnnotations.initMocks(this);
         subject = new PasswordAuthenticationProvider() {
             @Override
@@ -54,7 +54,7 @@ public class PasswordAuthenticationProviderTest {
     }
 
     @Test
-    public void authenticatePassword() throws Exception {
+    public void authenticatePassword() {
         //given
         val username = "username";
         val password = "password";

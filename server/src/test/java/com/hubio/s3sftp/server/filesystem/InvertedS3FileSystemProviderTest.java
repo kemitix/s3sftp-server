@@ -24,31 +24,18 @@ import java.net.URI;
 import java.nio.channels.AsynchronousFileChannel;
 import java.nio.channels.FileChannel;
 import java.nio.channels.SeekableByteChannel;
-import java.nio.file.AccessMode;
-import java.nio.file.CopyOption;
-import java.nio.file.DirectoryStream;
-import java.nio.file.FileStore;
-import java.nio.file.FileSystem;
-import java.nio.file.LinkOption;
-import java.nio.file.OpenOption;
-import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
-import java.nio.file.StandardOpenOption;
+import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileAttribute;
 import java.nio.file.attribute.FileAttributeView;
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 
 /**
@@ -75,7 +62,7 @@ public class InvertedS3FileSystemProviderTest {
     private SocketAddress remoteAddress;
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         MockitoAnnotations.initMocks(this);
         subject = new InvertedS3FileSystemProvider(delegate);
         given(delegate.getSession()).willReturn(session);
@@ -86,7 +73,7 @@ public class InvertedS3FileSystemProviderTest {
     }
 
     @Test
-    public void getScheme() throws Exception {
+    public void getScheme() {
         //given
         exception.expect(UnsupportedOperationException.class);
         exception.expectMessage("Inverted - getScheme");
@@ -95,7 +82,7 @@ public class InvertedS3FileSystemProviderTest {
     }
 
     @Test
-    public void newFileSystem() throws Exception {
+    public void newFileSystem() {
         //given
         final URI uri = URI.create("s3://uri");
         final Map<String, String> env = new HashMap<>();
@@ -121,7 +108,7 @@ public class InvertedS3FileSystemProviderTest {
     }
 
     @Test
-    public void getFileSystemKey() throws Exception {
+    public void getFileSystemKey() {
         //given
         final URI uri = URI.create("s3://uri");
         final Properties props = new Properties();
@@ -134,7 +121,7 @@ public class InvertedS3FileSystemProviderTest {
     }
 
     @Test
-    public void validateUri() throws Exception {
+    public void validateUri() {
         //given
         final URI uri = URI.create("s3://uri");
         exception.expect(UnsupportedOperationException.class);
@@ -144,7 +131,7 @@ public class InvertedS3FileSystemProviderTest {
     }
 
     @Test
-    public void overloadProperties() throws Exception {
+    public void overloadProperties() {
         //given
         final Properties props = new Properties();
         final Map<String, ?> env = new HashMap<>();
@@ -156,7 +143,7 @@ public class InvertedS3FileSystemProviderTest {
     }
 
     @Test
-    public void overloadPropertiesWithEnv() throws Exception {
+    public void overloadPropertiesWithEnv() {
         //given
         final Properties props = new Properties();
         final Map<String, ?> env = new HashMap<>();
@@ -171,7 +158,7 @@ public class InvertedS3FileSystemProviderTest {
     }
 
     @Test
-    public void overloadPropertiesWithSystemProps() throws Exception {
+    public void overloadPropertiesWithSystemProps() {
         //given
         final Properties props = new Properties();
         final String key = "key";
@@ -182,7 +169,7 @@ public class InvertedS3FileSystemProviderTest {
     }
 
     @Test
-    public void overloadPropertiesWithSystemEnv() throws Exception {
+    public void overloadPropertiesWithSystemEnv() {
         //given
         final Properties props = new Properties();
         final String key = "key";
@@ -193,7 +180,7 @@ public class InvertedS3FileSystemProviderTest {
     }
 
     @Test
-    public void systemGetEnv() throws Exception {
+    public void systemGetEnv() {
         //given
         final String key = "key";
         exception.expect(UnsupportedOperationException.class);
@@ -203,7 +190,7 @@ public class InvertedS3FileSystemProviderTest {
     }
 
     @Test
-    public void getFileSystem() throws Exception {
+    public void getFileSystem() {
         //given
         final URI uri = URI.create("s3://uri");
         final Map<String, ?> env = new HashMap<>();
@@ -216,7 +203,7 @@ public class InvertedS3FileSystemProviderTest {
     }
 
     @Test
-    public void getFileSystem1() throws Exception {
+    public void getFileSystem1() {
         //given
         final URI uri = URI.create("s3://uri");
         exception.expect(UnsupportedOperationException.class);
@@ -226,7 +213,7 @@ public class InvertedS3FileSystemProviderTest {
     }
 
     @Test
-    public void getPath() throws Exception {
+    public void getPath() {
         //given
         final URI uri = URI.create("s3://uri");
         final Path expected = mock(Path.class);
@@ -380,7 +367,7 @@ public class InvertedS3FileSystemProviderTest {
     }
 
     @Test
-    public void getFileAttributeView() throws Exception {
+    public void getFileAttributeView() {
         //given
         final Path path = mock(Path.class);
         final Class<FileAttributeView> type = FileAttributeView.class;
@@ -436,7 +423,7 @@ public class InvertedS3FileSystemProviderTest {
     }
 
     @Test
-    public void createFileSystem() throws Exception {
+    public void createFileSystem() {
         //given
         final URI uri = URI.create("s3://uri");
         final Properties props = new Properties();
@@ -447,7 +434,7 @@ public class InvertedS3FileSystemProviderTest {
     }
 
     @Test
-    public void getAmazonS3() throws Exception {
+    public void getAmazonS3() {
         //given
         final URI uri = URI.create("s3://uri");
         final Properties props = new Properties();
@@ -460,7 +447,7 @@ public class InvertedS3FileSystemProviderTest {
     }
 
     @Test
-    public void getAmazonS3Factory() throws Exception {
+    public void getAmazonS3Factory() {
         //given
         final Properties props = new Properties();
         final AmazonS3Factory expected = mock(AmazonS3Factory.class);
@@ -472,7 +459,7 @@ public class InvertedS3FileSystemProviderTest {
     }
 
     @Test
-    public void loadAmazonProperties() throws Exception {
+    public void loadAmazonProperties() {
         //given
         exception.expect(UnsupportedOperationException.class);
         exception.expectMessage("Inverted - loadAmazonProperties");
@@ -481,7 +468,7 @@ public class InvertedS3FileSystemProviderTest {
     }
 
     @Test
-    public void close() throws Exception {
+    public void close() {
         //given
         final S3FileSystem s3FileSystem = mock(S3FileSystem.class);
         //when
@@ -491,7 +478,7 @@ public class InvertedS3FileSystemProviderTest {
     }
 
     @Test
-    public void isOpen() throws Exception {
+    public void isOpen() {
         //given
         final S3FileSystem s3FileSystem = mock(S3FileSystem.class);
         exception.expect(UnsupportedOperationException.class);
@@ -501,7 +488,7 @@ public class InvertedS3FileSystemProviderTest {
     }
 
     @Test
-    public void getCache() throws Exception {
+    public void getCache() {
         //given
         exception.expect(UnsupportedOperationException.class);
         exception.expectMessage("Inverted - getCache");
@@ -510,7 +497,7 @@ public class InvertedS3FileSystemProviderTest {
     }
 
     @Test
-    public void setCache() throws Exception {
+    public void setCache() {
         //given
         final Cache cache = mock(Cache.class);
         exception.expect(UnsupportedOperationException.class);
