@@ -12,8 +12,8 @@
         <relativePath/>
     </parent>
 
-    <groupId>com.hubio</groupId>
-    <artifactId>s3sftp-parent</artifactId>
+    <groupId>net.kemitix.s3sftp</groupId>
+    <artifactId>parent</artifactId>
     <version>DEV-SNAPSHOT</version>
 
     <name>S3 SFTP Server (parent)</name>
@@ -28,17 +28,18 @@
         </license>
     </licenses>
 
-    <organization>
-        <name>Hubio</name>
-        <url>http://hubio.com/</url>
-    </organization>
-
     <developers>
+        <developer>
+            <name>Paul Campbell</name>
+            <email>pcampbell@kemitix.net</email>
+            <roles><role>maintainer</role></roles>
+        </developer>
         <developer>
             <name>Paul Campbell</name>
             <email>paul.campbell@hubio.com</email>
             <organization>Hubio</organization>
             <organizationUrl>https://hubio.com/</organizationUrl>
+            <roles><role>developer</role></roles>
         </developer>
     </developers>
 

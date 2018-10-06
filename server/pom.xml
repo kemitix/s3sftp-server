@@ -4,14 +4,14 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <artifactId>s3sftp-parent</artifactId>
-        <groupId>com.hubio</groupId>
+        <groupId>net.kemitix.s3sftp</groupId>
+        <artifactId>parent</artifactId>
         <version>DEV-SNAPSHOT</version>
-        <relativePath>../parent</relativePath>
+        <relativePath>../parent/pom.xml</relativePath>
     </parent>
 
-    <artifactId>s3sftp-server</artifactId>
-    <name>S3 SFTP Server (server)</name>
+    <artifactId>server</artifactId>
+    <name>S3 SFTP Server</name>
 
     <properties>
         <jacoco-class-line-covered-ratio>0</jacoco-class-line-covered-ratio>
