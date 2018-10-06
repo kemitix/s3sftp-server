@@ -22,8 +22,8 @@
 
     <dependencies>
         <dependency>
-            <groupId>com.hubio</groupId>
-            <artifactId>s3sftp-server</artifactId>
+            <groupId>net.kemitix.s3sftp</groupId>
+            <artifactId>server</artifactId>
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>
