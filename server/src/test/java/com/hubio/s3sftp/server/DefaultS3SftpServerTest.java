@@ -73,6 +73,7 @@ class DefaultS3SftpServerTest implements WithAssertions {
     private SessionBucket sessionBucket = S3SftpServer.simpleSessionBucket(bucket);
     private SessionHome sessionHome = S3SftpServer.perUserHome(home);
 
+    // creating a server can sometime be slow due to bouncycastle blocking while loading a random seed.
     private S3SftpServer createServer() {
         final String hostKeyAlgorithm = "RSA";
         final String uri = "uri";
