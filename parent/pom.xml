@@ -85,8 +85,8 @@
                 <version>${lombok.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.hubio</groupId>
-                <artifactId>s3sftp-server</artifactId>
+                <groupId>net.kemitix.s3sftp</groupId>
+                <artifactId>server</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
