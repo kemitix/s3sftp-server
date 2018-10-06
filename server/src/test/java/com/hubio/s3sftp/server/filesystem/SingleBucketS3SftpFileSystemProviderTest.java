@@ -1,15 +1,13 @@
 package com.hubio.s3sftp.server.filesystem;
 
 import com.hubio.s3sftp.server.S3SftpServer;
+import com.upplication.s3fs.S3FileSystem;
 import lombok.val;
 import me.andrz.builder.map.MapBuilder;
 import org.assertj.core.api.SoftAssertions;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.assertj.core.api.ThrowableAssert;
+import org.assertj.core.api.WithAssertions;
+import org.junit.jupiter.api.Test;
 
 import java.net.URI;
 import java.nio.file.FileSystem;
@@ -17,7 +15,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
@@ -25,56 +22,42 @@ import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 
-/**
- * Tests for {@link SingleBucketS3SftpFileSystemProvider}.
- *
- * @author Paul Campbell (paul.campbell@hubio.com)
- */
-public class SingleBucketS3SftpFileSystemProviderTest {
+class SingleBucketS3SftpFileSystemProviderTest implements WithAssertions {
 
-    private SingleBucketS3SftpFileSystemProvider subject;
+    private final S3SftpFileSystemProvider delegate = mock(S3SftpFileSystemProvider.class);
 
-    @Mock
-    private S3SftpFileSystemProvider delegate;
-
-    @Rule
-    public ExpectedException exception = ExpectedException.none();
-
-    @Before
-    public void setUp() {
-        MockitoAnnotations.initMocks(this);
-        subject = new SingleBucketS3SftpFileSystemProvider(delegate);
-    }
+    private final SingleBucketS3SftpFileSystemProvider subject = new SingleBucketS3SftpFileSystemProvider(delegate);
 
     @Test
-    public void overloadProperties() {
+    void overloadProperties() {
         //given
         val props = new Properties();
-        val env = new HashMap<String, String>();
+        final Map<String, String> env = new HashMap<>();
         val bucket = "bucket";
         env.put(S3SftpServer.BUCKET, bucket);
         //when
         subject.overloadProperties(props, env);
         //then
-        then(delegate).should()
-                      .overloadProperties(props, env);
-        then(delegate).should()
-                      .overloadPropertiesWithEnv(props, env, S3SftpServer.BUCKET);
+        then(delegate).should().overloadProperties(props, env);
+        then(delegate).should().overloadPropertiesWithEnv(props, env, S3SftpServer.BUCKET);
     }
 
     @Test
-    public void overloadPropertiesWhenBucketIsMissing() {
+    void overloadPropertiesWhenBucketIsMissing() {
         //given
         val props = new Properties();
-        val env = new HashMap<String, String>();
-        exception.expect(IllegalStateException.class);
-        exception.expectMessage("Bucket not available");
+        final Map<String, String> env = new HashMap<>();
         //when
-        subject.overloadProperties(props, env);
+        final ThrowableAssert.ThrowingCallable callable = () ->
+                subject.overloadProperties(props, env);
+        //then
+        assertThatCode(callable)
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessage("Bucket not available");
     }
 
     @Test
-    public void newFileSystem() throws Throwable {
+    void newFileSystem() throws Throwable {
         //given
         val hostname = "uri";
         val uri = URI.create("s3://" + hostname);
@@ -84,7 +67,7 @@ public class SingleBucketS3SftpFileSystemProviderTest {
         val key = "uribucket";
         given(delegate.getFileSystemKey(any(), eq(props))).willReturn(key);
         //when
-        val result = subject.newFileSystem(uri, props).orElseThrow();
+        final S3FileSystem result = subject.newFileSystem(uri, props).orElseThrow();
         //then
         SoftAssertions.assertSoftly(s -> {
             s.assertThat(result)
@@ -103,42 +86,49 @@ public class SingleBucketS3SftpFileSystemProviderTest {
     }
 
     @Test
-    public void newFileSystemWhenBucketIsMissing() {
+    void newFileSystemWhenBucketIsMissing() {
         //given
         val hostname = "uri";
         val uri = URI.create("s3://" + hostname);
         val props = new Properties();
-        exception.expect(IllegalArgumentException.class);
-        exception.expectMessage("Bucket not specified");
         //when
-        subject.newFileSystem(uri, props);
+        final ThrowableAssert.ThrowingCallable callable = () ->
+                subject.newFileSystem(uri, props);
+        //then
+        assertThatCode(callable)
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Bucket not specified");
     }
 
     @Test
-    public void getFileSystemWhenExists() {
+    void getFileSystemWhenExists() {
         //given
-        final URI uri = URI.create("s3://uri");
-        final Map<String, String> env = new MapBuilder<String, String>().build();
-        final FileSystem expected = mock(FileSystem.class);
+        val uri = URI.create("s3://uri");
+        final Map<String, String> env = emptyMap();
+        val expected = mock(FileSystem.class);
         given(delegate.getFileSystem(uri, env)).willReturn(expected);
         given(delegate.fileSystemExists(uri, env)).willReturn(true);
         //when
-        val result = subject.getFileSystem(uri, env);
+        final FileSystem result = subject.getFileSystem(uri, env);
         //then
         assertThat(result).isSameAs(expected);
     }
 
+    private Map<String, String> emptyMap() {
+        return new MapBuilder<String, String>().build();
+    }
+
     @Test
-    public void getFileSystemWhenDoesNotExist() {
+    void getFileSystemWhenDoesNotExist() {
         //given
-        final URI uri = URI.create("s3://uri");
-        final Map<String, String> env = new MapBuilder<String, String>().build();
-        final Properties props = new Properties();
+        val uri = URI.create("s3://uri");
+        final Map<String, String> env = emptyMap();
+        val props = new Properties();
         props.setProperty(S3SftpServer.BUCKET, "bucket");
         given(delegate.mapAsProperties(env)).willReturn(props);
         given(delegate.fileSystemExists(uri, env)).willReturn(false);
         //when
-        val result = subject.getFileSystem(uri, env);
+        final FileSystem result = subject.getFileSystem(uri, env);
         //then
         assertThat(result).isInstanceOf(FilteredS3FileSystem.class);
         then(delegate).should(never())

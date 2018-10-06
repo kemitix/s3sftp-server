@@ -6,56 +6,34 @@ import com.hubio.s3sftp.server.filesystem.UserFileSystemResolver;
 import com.upplication.s3fs.S3FileSystem;
 import lombok.val;
 import org.apache.sshd.server.session.ServerSession;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.assertj.core.api.WithAssertions;
+import org.junit.jupiter.api.Test;
 
 import java.net.URI;
+import java.nio.file.FileSystem;
 import java.util.Optional;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.mock;
 
-/**
- * Tests for {@link }.
- *
- * @author Paul Campbell (paul.campbell@hubio.com)
- */
-public class S3FileSystemFactoryTest {
+class S3FileSystemFactoryTest implements WithAssertions {
 
-    private S3FileSystemFactory subject;
+    private final ServerSession serverSession = mock(ServerSession.class);
+    private final S3FileSystem s3FileSystem = mock(S3FileSystem.class);
+    private final S3SftpFileSystemProviderFactory fileSystemProviderFactory =
+            mock(S3SftpFileSystemProviderFactory.class);
+    private final S3SftpFileSystemProvider s3SftpFileSystemProvider = mock(S3SftpFileSystemProvider.class);
+    private final UserFileSystemResolver userFileSystemResolver = mock(UserFileSystemResolver.class);
 
-    private SftpSession sftpSession;
-
-    @Mock
-    private ServerSession serverSession;
-
-    @Mock
-    private S3FileSystem s3FileSystem;
-
-    @Mock
-    private S3SftpFileSystemProviderFactory fileSystemProviderFactory;
-
-    @Mock
-    private S3SftpFileSystemProvider s3SftpFileSystemProvider;
-
-    @Mock
-    private UserFileSystemResolver userFileSystemResolver;
-
-    @Before
-    public void setUp() {
-        MockitoAnnotations.initMocks(this);
-        sftpSession = SftpSession.of(serverSession);
-        subject = new S3FileSystemFactory(session -> "bucket", session -> "home", session -> "", URI.create("uri"),
-                                          fileSystemProviderFactory, userFileSystemResolver
-        );
-    }
+    private S3FileSystemFactory subject =
+            new S3FileSystemFactory(session -> "bucket", session -> "home", session -> "", URI.create("uri"),
+                    fileSystemProviderFactory, userFileSystemResolver
+    );
 
     @Test
-    public void shouldCreateFileSystem() throws Exception {
+    void shouldCreateFileSystem() throws Exception {
         //given
         val username = "newUser";
         given(serverSession.getUsername()).willReturn(username);
@@ -64,7 +42,7 @@ public class S3FileSystemFactoryTest {
         given(s3SftpFileSystemProvider.getFileSystem(any(), any())).willReturn(s3FileSystem);
         given(s3SftpFileSystemProvider.getSession()).willReturn(serverSession);
         //when
-        val result = subject.createFileSystem(serverSession);
+        final FileSystem result = subject.createFileSystem(serverSession);
         //then
         assertThat(result).isSameAs(s3FileSystem);
     }

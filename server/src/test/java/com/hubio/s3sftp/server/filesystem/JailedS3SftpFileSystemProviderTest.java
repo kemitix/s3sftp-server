@@ -1,50 +1,31 @@
 package com.hubio.s3sftp.server.filesystem;
 
 import com.hubio.s3sftp.server.S3SftpServer;
-import com.hubio.s3sftp.server.filesystem.DelegatableS3FileSystemProvider;
-import com.hubio.s3sftp.server.filesystem.JailedS3SftpFileSystemProvider;
 import com.upplication.s3fs.AmazonS3Factory;
 import lombok.val;
 import org.apache.sshd.common.session.Session;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.assertj.core.api.ThrowableAssert;
+import org.assertj.core.api.WithAssertions;
+import org.junit.jupiter.api.Test;
 
 import java.net.URI;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 
-/**
- * Tests for {@link }.
- *
- * @author Paul Campbell (paul.campbell@hubio.com)
- */
-public class JailedS3SftpFileSystemProviderTest {
+class JailedS3SftpFileSystemProviderTest implements WithAssertions {
 
-    private JailedS3SftpFileSystemProvider subject;
-
-    @Rule
-    public ExpectedException exception = ExpectedException.none();
-
-    @Mock
-    private Session session;
-
-    @Before
-    public void setUp() throws Exception {
-        MockitoAnnotations.initMocks(this);
-        subject = new JailedS3SftpFileSystemProvider(new DelegatableS3FileSystemProvider(session));
-    }
+    private final Session session = mock(Session.class);
+    private final DelegatableS3FileSystemProvider provider = new DelegatableS3FileSystemProvider(session);
+    private final JailedS3SftpFileSystemProvider subject = new JailedS3SftpFileSystemProvider(provider);
 
     @Test
-    public void overloadProperties() throws Exception {
+    void overloadProperties() {
         //given
         val props = new Properties();
-        val env = new HashMap<String, String>();
+        final Map<String, String> env = new HashMap<>();
         val jail = "jail";
         env.put(S3SftpServer.JAIL, jail);
         //when
@@ -57,25 +38,28 @@ public class JailedS3SftpFileSystemProviderTest {
     }
 
     @Test
-    public void overloadPropertiesWithMissingJail() throws Exception {
+    void overloadPropertiesWithMissingJail() {
         //given
         val props = new Properties();
-        val env = new HashMap<String, String>();
-        exception.expect(IllegalStateException.class);
-        exception.expectMessage("Jail not available");
+        final Map<String, String> env = new HashMap<>();
         //when
-        subject.overloadProperties(props, env);
+        final ThrowableAssert.ThrowingCallable callable = () ->
+                subject.overloadProperties(props, env);
+        //then
+        assertThatThrownBy(callable)
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessage("Jail not available");
     }
 
     @Test
-    public void getFileSystemKey() throws Exception {
+    void getFileSystemKey() {
         //given
-        final URI uri = URI.create("s3://uri");
-        final Properties props = new Properties();
+        val uri = URI.create("s3://uri");
+        val props = new Properties();
         props.setProperty(S3SftpServer.JAIL, "jail");
         props.setProperty(AmazonS3Factory.ACCESS_KEY, "accessKey");
         //when
-        val result = subject.getFileSystemKey(uri, props);
+        final String result = subject.getFileSystemKey(uri, props);
         //then
         /// only the host and any accesskey is used to make the key (unless an username is included)
         assertThat(result).isEqualTo("accessKey@uri");

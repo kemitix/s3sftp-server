@@ -9,42 +9,35 @@ import com.upplication.s3fs.S3Path;
 import lombok.val;
 import me.andrz.builder.map.MapBuilder;
 import org.apache.sshd.common.session.Session;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.assertj.core.api.WithAssertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.net.URI;
+import java.nio.file.FileSystem;
+import java.util.Map;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assumptions.assumeThat;
+import static org.mockito.Mockito.mock;
 
-/**
- * Integration test for the {@link S3SftpFileSystemProvider} collection of classes.
- *
- * @author Paul Campbell (paul.campbell@hubio.com)
- */
-public class FilesystemProviderIT {
+class FilesystemProviderIT implements WithAssertions {
 
     private final static String S3_URI = "s3://uri";
+    private final AmazonS3 amazonS3 = mock(AmazonS3.class);
+    private final Session session = mock(Session.class);
 
-    @Mock
-    private AmazonS3 amazonS3;
-
-    @Mock
-    private Session session;
-
-    @Before
-    public void setUp() {
-        MockitoAnnotations.initMocks(this);
+    @BeforeEach
+    void setUp() {
         // ensure all cached filesystems are closed
-        new DelegatableS3FileSystemProvider(session).getAllFileSystems()
-                                                    .forEach(s3FileSystem -> s3FileSystem.provider()
-                                                                                         .close(s3FileSystem));
+        new DelegatableS3FileSystemProvider(session)
+                .getAllFileSystems()
+                .forEach(s3FileSystem ->
+                        s3FileSystem.provider().close(s3FileSystem));
     }
 
     @Test
-    public void shouldCreateFilteredS3FileSystem() {
+    void shouldCreateFilteredS3FileSystem() {
         //given
         val factory = new DefaultS3SftpFileSystemProviderFactory();
         val pathEnhancer = S3PathEnhancer.fixedPrefix("prefix");
@@ -54,22 +47,22 @@ public class FilesystemProviderIT {
                                                   .build();
         val fileSystemProvider = factory.createWith(pathEnhancer, session);
         //when
-        val fileSystem = fileSystemProvider.getFileSystem(URI.create(S3_URI), env);
+        final FileSystem fileSystem = fileSystemProvider.getFileSystem(URI.create(S3_URI), env);
         //then
         assertThat(fileSystem).isInstanceOf(FilteredS3FileSystem.class);
     }
 
     @Test
-    public void shouldCallPosixPermissionsReadAttributesFromS3FileProviderInterface() throws IOException {
+    void shouldCallPosixPermissionsReadAttributesFromS3FileProviderInterface() throws IOException {
         //given
         val configuration = TestAmazonS3Configuration.of(amazonS3, "bucket", "users", "username");
         val fileSystemProvider = configuration.getFileSystemProvider();
         val fileSystem = fileSystemProvider.getFileSystem(URI.create(S3_URI), configuration.getEnv());
-        assertThat(fileSystem).isInstanceOf(S3FileSystem.class);
+        assumeThat(fileSystem).isInstanceOf(S3FileSystem.class);
         val s3path = new S3Path((S3FileSystem) fileSystem, configuration.getHomeDir());
         val attr = "";
         //when
-        val attributes = fileSystemProvider.readAttributes(s3path, attr);
+        final Map<String, Object> attributes = fileSystemProvider.readAttributes(s3path, attr);
         //then
         assertThat(attributes).containsKey("permissions");
     }

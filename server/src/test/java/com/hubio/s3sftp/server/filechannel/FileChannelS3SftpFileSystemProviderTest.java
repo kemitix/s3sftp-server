@@ -10,51 +10,33 @@ import com.upplication.s3fs.S3FileSystemProvider;
 import com.upplication.s3fs.S3Path;
 import lombok.val;
 import org.apache.sshd.common.session.Session;
-import org.junit.Before;
+import org.assertj.core.api.ThrowableAssert;
+import org.assertj.core.api.WithAssertions;
 import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.migrationsupport.rules.EnableRuleMigrationSupport;
 import org.junit.rules.TemporaryFolder;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 
 import java.nio.channels.FileChannel;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.EnumSet;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 
-/**
- * Tests for {@link }.
- *
- * @author Paul Campbell (paul.campbell@hubio.com)
- */
-public class FileChannelS3SftpFileSystemProviderTest {
+@EnableRuleMigrationSupport
+class FileChannelS3SftpFileSystemProviderTest implements WithAssertions {
 
-    private S3SftpFileSystemProvider subject;
+    private final Session session = mock(Session.class);
+    private final S3SftpFileSystemProvider subject = FileSystemProviderMother.fileChannelProvider(session);
 
     @Rule
     public TemporaryFolder folder = new TemporaryFolder();
 
-    @Rule
-    public ExpectedException exception = ExpectedException.none();
-
-    @Mock
-    private Session session;
-
-    @Before
-    public void setUp() {
-        MockitoAnnotations.initMocks(this);
-        subject = FileSystemProviderMother.fileChannelProvider(session);
-
-    }
-
     @Test
-    public void newFileChannel() throws Exception {
+    void newFileChannel() throws Exception {
         //given
         val fileSystem = mock(S3FileSystem.class);
         //given(fileSystem.parts2Key(any())).willReturn("key");
@@ -83,13 +65,16 @@ public class FileChannelS3SftpFileSystemProviderTest {
     }
 
     @Test
-    public void newFileChannelWhenNotS3Path() throws Exception {
+    void newFileChannelWhenNotS3Path() {
         //given
-        exception.expect(IllegalArgumentException.class);
-        exception.expectMessage("path must be an instance of S3Path");
         val path = mock(Path.class);
         val options = EnumSet.of(StandardOpenOption.CREATE_NEW);
         //when
-        subject.newFileChannel(path, options);
+        final ThrowableAssert.ThrowingCallable callable = () ->
+                subject.newFileChannel(path, options);
+        //then
+        assertThatCode(callable)
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("path must be an instance of S3Path");
     }
 }

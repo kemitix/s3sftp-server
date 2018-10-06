@@ -1,50 +1,36 @@
 package com.hubio.s3sftp.server.filesystem;
 
-import com.hubio.s3sftp.server.filesystem.DefaultUserFileSystemResolver;
 import com.upplication.s3fs.S3FileSystem;
 import lombok.val;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.assertj.core.api.WithAssertions;
+import org.junit.jupiter.api.Test;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import java.util.Optional;
 
-/**
- * Tests for {@link DefaultUserFileSystemResolver}.
- *
- * @author Paul Campbell (paul.campbell@hubio.com)
- */
-public class DefaultUserFileSystemResolverTest {
+import static org.mockito.Mockito.mock;
 
-    private DefaultUserFileSystemResolver subject;
+class DefaultUserFileSystemResolverTest implements WithAssertions {
 
-    @Mock
-    private S3FileSystem fileSystem;
-
-    @Before
-    public void setUp() {
-        MockitoAnnotations.initMocks(this);
-        subject = new DefaultUserFileSystemResolver();
-    }
+    private final S3FileSystem fileSystem = mock(S3FileSystem.class);
+    private final DefaultUserFileSystemResolver subject = new DefaultUserFileSystemResolver();
 
     @Test
-    public void resolveKnownUser() throws Exception {
+    void resolveKnownUser() {
         //given
         val username = "username";
         subject.put(username, fileSystem);
         //when
-        val result = subject.resolve(username);
+        final Optional<S3FileSystem> result = subject.resolve(username);
         //then
         assertThat(result).contains(fileSystem);
     }
 
     @Test
-    public void resolveUnknownUser() throws Exception {
+    void resolveUnknownUser() {
         //given
         val username = "username";
         //when
-        val result = subject.resolve(username);
+        final Optional<S3FileSystem> result = subject.resolve(username);
         //then
         assertThat(result).isEmpty();
     }

@@ -2,47 +2,31 @@ package com.hubio.s3sftp.server;
 
 import org.apache.sshd.server.auth.pubkey.PublickeyAuthenticator;
 import org.apache.sshd.server.session.ServerSession;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.assertj.core.api.WithAssertions;
+import org.junit.jupiter.api.Test;
 
 import java.security.PublicKey;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 
-/**
- * Tests for {@link PublicKeyAuthenticationProvider}.
- *
- * @author Paul Campbell (paul.campbell@hubio.com)
- */
-public class PublicKeyAuthenticationProviderTest {
+class PublicKeyAuthenticationProviderTest implements WithAssertions {
 
-    private PublicKeyAuthenticationProvider subject;
+    private final PublicKey key = mock(PublicKey.class);
+    private final ServerSession session = mock(ServerSession.class);
 
     private boolean expectedResponse;
 
-    @Mock
-    private PublicKey key;
-
-    @Mock
-    private ServerSession session;
-
-    @Before
-    public void setUp() throws Exception {
-        MockitoAnnotations.initMocks(this);
-        subject = new PublicKeyAuthenticationProvider(new PublickeyAuthenticator() {
-            @Override
-            public boolean authenticate(
-                    final String username, final PublicKey key, final ServerSession session
-                                       ) {
-                return expectedResponse;
-            }
-        });
-    }
+    private final PublickeyAuthenticator publickeyAuthenticator =
+            new PublickeyAuthenticator() {
+                @Override
+                public boolean authenticate(final String username, final PublicKey key, final ServerSession session) {
+                    return expectedResponse;
+                }
+            };
+    private final PublicKeyAuthenticationProvider subject= new PublicKeyAuthenticationProvider(publickeyAuthenticator);
 
     @Test
-    public void shouldDelegateToAuthenticator() {
+    void shouldDelegateToAuthenticator() {
         //given
         expectedResponse = false;
         //then

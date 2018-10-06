@@ -3,7 +3,6 @@ package com.hubio.s3sftp.server;
 import com.hubio.s3sftp.server.filesystem.UserFileSystemResolver;
 import com.upplication.s3fs.S3FileSystem;
 import com.upplication.s3fs.S3Path;
-import de.bechte.junit.runners.context.HierarchicalContextRunner;
 import lombok.val;
 import org.apache.sshd.common.Factory;
 import org.apache.sshd.common.random.Random;
@@ -12,9 +11,11 @@ import org.apache.sshd.server.ServerFactoryManager;
 import org.apache.sshd.server.session.ServerSession;
 import org.apache.sshd.server.subsystem.sftp.*;
 import org.assertj.core.api.WithAssertions;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -26,13 +27,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 
-/**
- * Tests for {@link JailedSftpSubsystem}.
- *
- * @author Paul Campbell (paul.campbell@hubio.com)
- */
-@RunWith(HierarchicalContextRunner.class)
-public class JailedSftpSubsystemTest implements WithAssertions {
+class JailedSftpSubsystemTest implements WithAssertions {
 
     private final CloseableExecutorService executorService = mock(CloseableExecutorService.class);
     private final SessionBucket sessionBucket = mock(SessionBucket.class);
@@ -43,7 +38,6 @@ public class JailedSftpSubsystemTest implements WithAssertions {
     private final ServerFactoryManager serverFactoryManager = mock(ServerFactoryManager.class);
     private final Random randomizer = mock(Random.class);
     private final S3FileSystem s3FileSystem = mock(S3FileSystem.class);
-    private final Factory<Random> randomFactory = mock(Factory.class);
     private final SftpFileSystemAccessor accessor = mock(SftpFileSystemAccessor.class);
     private final SftpErrorStatusDataHandler errorStatusDataHandler = mock(SftpErrorStatusDataHandler.class);
 
@@ -55,13 +49,13 @@ public class JailedSftpSubsystemTest implements WithAssertions {
     private SftpSession sftpSession;
 
     @Test
-    public void shouldRemoveOnlyPermissionsFromAttributes() throws Exception {
+    void shouldRemoveOnlyPermissionsFromAttributes() throws Exception {
         //given
         val path = Paths.get(".");
-        val attributes = new HashMap<String, String>();
+        final Map<String, String> attributes = new HashMap<>();
         attributes.put("basic", "keep me");
         attributes.put("permissions", "drop me");
-        val modifiedAttributes = new HashMap<String, Object>();
+        final Map<String, Object> modifiedAttributes = new HashMap<>();
         sftpSubsystem.addSftpEventListener(new AbstractSftpEventListenerAdapter() {
             @Override
             public void modifyingAttributes(final ServerSession session, final Path path, final Map<String, ?> attrs) {
@@ -71,21 +65,24 @@ public class JailedSftpSubsystemTest implements WithAssertions {
         //when
         sftpSubsystem.doSetAttributes(path, attributes);
         //then
-        assertThat(modifiedAttributes).containsOnlyKeys("basic")
-                                      .containsValues("keep me")
-                                      .doesNotContainValue("drop me");
+        assertThat(modifiedAttributes)
+                .containsOnlyKeys("basic")
+                .containsValues("keep me")
+                .doesNotContainValue("drop me");
     }
 
-    public class ResolveFile {
+    @Nested
+    class ResolveFile {
 
-        private String username;
+        private final String username = "bob";
+        private final String bucket = "bucket";
 
-        private String bucket;
+        @Mock
+        private Factory<Random> randomFactory;
 
-        @Before
-        public void setUp() {
-            username = "bob";
-            bucket = "bucket";
+        @BeforeEach
+        void setUp() {
+            MockitoAnnotations.initMocks(this);
             given(serverSession.getFactoryManager()).willReturn(serverFactoryManager);
             given(serverFactoryManager.getRandomFactory()).willReturn(randomFactory);
             given(randomFactory.create()).willReturn(randomizer);
@@ -103,197 +100,200 @@ public class JailedSftpSubsystemTest implements WithAssertions {
             given(s3FileSystem.getSeparator()).willReturn("/");
         }
 
-        public class Root {
+        @Nested
+        class Root {
 
-            @Before
-            public void setUp() {
+            @BeforeEach
+            void setUp() {
                 given(sessionHome.getHomePath(sftpSession)).willReturn("");
             }
 
             @Test
-            public void resolveFileRoot() {
+            void resolveFileRoot() {
                 //when
-                val path = sftpSubsystem.resolveFile(".");
+                final Path path = sftpSubsystem.resolveFile(".");
                 //then
                 assertThat(S3PathUtil.dirPath((S3Path)path)).isEqualTo("/bucket/");
             }
 
             @Test
-            public void resolveFileDirectory() {
+            void resolveFileDirectory() {
                 //when
-                val path = sftpSubsystem.resolveFile("/subdir");
+                final Path path = sftpSubsystem.resolveFile("/subdir");
                 //then
                 assertThat(S3PathUtil.dirPath((S3Path)path)).isEqualTo("/bucket/subdir");
             }
 
             @Test
-            public void resolveFileFile() {
+            void resolveFileFile() {
                 //when
-                val path = sftpSubsystem.resolveFile("/file.txt");
+                final Path path = sftpSubsystem.resolveFile("/file.txt");
                 //then
                 assertThat(S3PathUtil.dirPath((S3Path)path)).isEqualTo("/bucket/file.txt");
             }
 
             @Test
-            public void resolverFilePreresolved() {
+            void resolverFilePreresolved() {
                 //when
-                val path = sftpSubsystem.resolveFile("/bucket/file.txt");
+                final Path path = sftpSubsystem.resolveFile("/bucket/file.txt");
                 //then
                 assertThat(S3PathUtil.dirPath((S3Path)path)).isEqualTo("/bucket/file.txt");
             }
 
             @Test
-            public void resolveFileShouldRemoveTrailingPeriod() {
+            void resolveFileShouldRemoveTrailingPeriod() {
                 //when
-                val path = sftpSubsystem.resolveFile("dir/.");
+                final Path path = sftpSubsystem.resolveFile("dir/.");
                 //then
                 assertThat(S3PathUtil.dirPath((S3Path)path)).isEqualTo("/bucket/dir");
             }
 
             @Test
-            public void resolveFileShouldResolveParentDir() {
+            void resolveFileShouldResolveParentDir() {
                 //when
-                val path = sftpSubsystem.resolveFile("dir/subdir/..");
+                final Path path = sftpSubsystem.resolveFile("dir/subdir/..");
                 //then
                 assertThat(S3PathUtil.dirPath((S3Path)path)).isEqualTo("/bucket/dir/subdir/..");
             }
         }
 
-        public class Home {
+        @Nested
+        class Home {
 
-            @Before
-            public void setUp() {
+            @BeforeEach
+            void setUp() {
                 given(sessionHome.getHomePath(any())).willReturn(username);
             }
 
             @Test
-            public void resolveUserDir() {
+            void resolveUserDir() {
                 //when
-                val path = sftpSubsystem.resolveFile("");
+                final Path path = sftpSubsystem.resolveFile("");
                 //then
                 assertThat(S3PathUtil.dirPath((S3Path)path)).isEqualTo("/bucket/bob");
             }
 
             @Test
-            public void resolveWithinUserDir() {
+            void resolveWithinUserDir() {
                 //when
-                val path = sftpSubsystem.resolveFile("file.txt");
+                final Path path = sftpSubsystem.resolveFile("file.txt");
                 //then
                 assertThat(S3PathUtil.dirPath((S3Path)path)).isEqualTo("/bucket/bob/file.txt");
             }
 
             @Test
-            public void resolveFileRoot() {
+            void resolveFileRoot() {
                 //when
-                val path = sftpSubsystem.resolveFile(".");
+                final Path path = sftpSubsystem.resolveFile(".");
                 //then
                 assertThat(S3PathUtil.dirPath((S3Path)path)).isEqualTo("/bucket/bob");
             }
 
             @Test
-            public void resolveFileDirectory() {
+            void resolveFileDirectory() {
                 //when
-                val path = sftpSubsystem.resolveFile("/subdir");
+                final Path path = sftpSubsystem.resolveFile("/subdir");
                 //then
                 assertThat(S3PathUtil.dirPath((S3Path)path)).isEqualTo("/bucket/bob/subdir");
             }
 
             @Test
-            public void resolveFileFile() {
+            void resolveFileFile() {
                 //when
-                val path = sftpSubsystem.resolveFile("/file.txt");
+                final Path path = sftpSubsystem.resolveFile("/file.txt");
                 //then
                 assertThat(S3PathUtil.dirPath((S3Path)path)).isEqualTo("/bucket/bob/file.txt");
             }
 
             @Test
-            public void resolverFilePreresolved() {
+            void resolverFilePreresolved() {
                 //when
-                val path = sftpSubsystem.resolveFile("/bucket/bob/file.txt");
+                final Path path = sftpSubsystem.resolveFile("/bucket/bob/file.txt");
                 //then
                 assertThat(S3PathUtil.dirPath((S3Path)path)).isEqualTo("/bucket/bob/file.txt");
             }
 
             @Test
-            public void resolveFileShouldRemoveTrailingPeriod() {
+            void resolveFileShouldRemoveTrailingPeriod() {
                 //given
                 val path = "dir/.";
                 //when
-                val result = sftpSubsystem.resolveFile(path);
+                final Path result = sftpSubsystem.resolveFile(path);
                 //then
                 assertThat(S3PathUtil.dirPath(((S3Path) result))).isEqualTo("/bucket/bob/dir");
             }
 
             @Test
-            public void resolveFileShouldResolveParentDir() {
+            void resolveFileShouldResolveParentDir() {
                 //given
                 val path = "dir/subdir/..";
                 //when
-                val result = sftpSubsystem.resolveFile(path);
+                final Path result = sftpSubsystem.resolveFile(path);
                 //then
                 assertThat(S3PathUtil.dirPath(((S3Path) result))).isEqualTo("/bucket/bob/dir/subdir/..");
             }
         }
 
-        public class Jailed {
+        @Nested
+        class Jailed {
 
-            @Before
-            public void setUp() {
+            @BeforeEach
+            void setUp() {
                 given(sessionHome.getHomePath(any())).willReturn(String.format("users/%s", username));
                 given(sessionJail.getJail(any())).willReturn("users");
                 // i.e. user should only see their own username as the visible path
             }
 
             @Test
-            public void dot() {
+            void dot() {
                 //when
-                val path = sftpSubsystem.resolveFile(".");
+                final Path path = sftpSubsystem.resolveFile(".");
                 //then
                 assertThat(S3PathUtil.dirPath((S3Path)path)).isEqualTo("/bob/");
             }
 
             @Test
-            public void home() {
+            void home() {
                 //when
-                val path = sftpSubsystem.resolveFile("/bob");
+                final Path path = sftpSubsystem.resolveFile("/bob");
                 //then
                 assertThat(S3PathUtil.dirPath((S3Path)path)).isEqualTo("/bob/");
             }
 
             @Test
-            public void file() {
+            void file() {
                 //when
-                val path = sftpSubsystem.resolveFile("/bob/file.txt");
+                final Path path = sftpSubsystem.resolveFile("/bob/file.txt");
                 //then
                 assertThat(S3PathUtil.dirPath((S3Path)path)).isEqualTo("/bob/file.txt");
             }
 
             @Test
-            public void fullJailedPath() {
+            void fullJailedPath() {
                 //when
-                val path = sftpSubsystem.resolveFile("/bucket/users/bob/file.txt");
+                final Path path = sftpSubsystem.resolveFile("/bucket/users/bob/file.txt");
                 //then
                 assertThat(S3PathUtil.dirPath((S3Path)path)).isEqualTo("/bob/file.txt");
             }
 
             @Test
-            public void removeTrailingPeriod() {
+            void removeTrailingPeriod() {
                 //when
-                val path = sftpSubsystem.resolveFile("/bob/dir/.");
+                final Path path = sftpSubsystem.resolveFile("/bob/dir/.");
                 //then
                 assertThat(S3PathUtil.dirPath((S3Path)path)).isEqualTo("/bob/dir");
             }
 
             @Test
-            public void acceptNavToParentDir() {
+            void acceptNavToParentDir() {
                 //when
-                val path = sftpSubsystem.resolveFile("/bob/dir/subdir/..");
+                final Path path = sftpSubsystem.resolveFile("/bob/dir/subdir/..");
                 //then
                 assertThat(S3PathUtil.dirPath((S3Path)path)).isEqualTo("/bob/dir/subdir/..");
             }
 
             @Test
-            public void homeIsOutsideJail() {
+            void homeIsOutsideJail() {
                 //given
                 given(sessionJail.getJail(any())).willReturn("jail");
                 given(sessionHome.getHomePath(any())).willReturn("home");
@@ -304,16 +304,16 @@ public class JailedSftpSubsystemTest implements WithAssertions {
             }
 
             @Test
-            public void tryToExitJail() {
+            void tryToExitJail() {
                 //given
-                val path = sftpSubsystem.resolveFile("/");
+                final Path path = sftpSubsystem.resolveFile("/");
                 //then
                 assertThat(S3PathUtil.dirPath((S3Path)path)).isEqualTo("/bob/");
             }
         }
 
         @Test
-        public void filesystemForUserIsMissing() {
+        void filesystemForUserIsMissing() {
             //given
             given(userFileSystemResolver.resolve(username)).willReturn(Optional.empty());
             //then

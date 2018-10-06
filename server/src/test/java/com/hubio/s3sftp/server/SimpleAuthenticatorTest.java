@@ -1,134 +1,100 @@
 package com.hubio.s3sftp.server;
 
-import lombok.val;
 import org.apache.sshd.server.session.ServerSession;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.assertj.core.api.WithAssertions;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 
-/**
- * Tests for {@link }.
- *
- * @author Paul Campbell (paul.campbell@hubio.com)
- */
-public class SimpleAuthenticatorTest {
+class SimpleAuthenticatorTest implements WithAssertions {
 
-    private SimpleAuthenticator subject;
+    private final SimpleAuthenticator subject = new SimpleAuthenticator();
+    private final HomeDirExistsChecker homeDirExistsChecker = mock(HomeDirExistsChecker.class);
+    private final ServerSession session = mock(ServerSession.class);
 
-    @Mock
-    private ServerSession session;
+    private final String username = "username";
+    private final String password = "password";
 
-    @Rule
-    public ExpectedException exception = ExpectedException.none();
+    private boolean authenticationResult;
 
-    @Before
-    public void setUp() throws Exception {
-        MockitoAnnotations.initMocks(this);
-        subject = new SimpleAuthenticator();
-    }
-
-    @Test
-    public void shouldAuthenticateUser() throws Exception {
-        //given
-        val username = "username";
-        val password = "password";
-        subject.addUser(username, password);
-        //when
-        val result = subject.authenticatePassword(username, password, SftpSession.of(session));
-        //then
-        assertThat(result).isTrue();
-    }
-
-    @Test
-    public void shouldHaveInvalidPassword() throws Exception {
-        //given
-        val username = "username";
-        val password = "password";
-        subject.addUser(username, password);
-        //when
-        val result = subject.authenticatePassword(username, "wrong", SftpSession.of(session));
-        //then
-        assertThat(result).isFalse();
-    }
-
-    @Test
-    public void shouldHaveInvalidUser() throws Exception {
-        //given
-        val username = "username";
-        val password = "password";
-        //when
-        val result = subject.authenticatePassword(username, password, SftpSession.of(session));
-        //then
-        assertThat(result).isFalse();
-    }
-
-    @Test
-    public void authenticateWithValidUserAndValidPasswordAndHomeExists() throws Exception {
-        //given
-        val username = "username";
-        val password = "password";
-        subject.addUser(username, password);
-        val session = mock(ServerSession.class);
-        val homeDirExistsChecker = mock(HomeDirExistsChecker.class);
+    @BeforeEach
+    void setUp() {
         subject.setHomeDirExistsChecker(homeDirExistsChecker);
+        givenUser(username, password);
+        givenHomeDirExists(username, session);
+    }
+
+    private void givenHomeDirExists(final String username, final ServerSession session) {
         given(homeDirExistsChecker.check(username, session)).willReturn(true);
-        //when
-        val result = subject.authenticate(username, password, session);
-        //then
-        assertThat(result).isTrue();
     }
 
-    @Test
-    public void authenticateWithValidUserAndInvalidPassword() throws Exception {
-        //given
-        val username = "username";
-        val password = "password";
-        subject.addUser(username, password);
-        val session = mock(ServerSession.class);
-        val homeDirExistsChecker = mock(HomeDirExistsChecker.class);
-        subject.setHomeDirExistsChecker(homeDirExistsChecker);
-        given(homeDirExistsChecker.check(username, session)).willReturn(true);
-        //when
-        val result = subject.authenticate(username, "garbage", session);
-        //then
-        assertThat(result).isFalse();
-    }
-
-    @Test
-    public void authenticateWithValidUserValidPasswordAndMissingHome() throws Exception {
-        //given
-        val username = "username";
-        val password = "password";
-        subject.addUser(username, password);
-        val session = mock(ServerSession.class);
-        val homeDirExistsChecker = mock(HomeDirExistsChecker.class);
-        subject.setHomeDirExistsChecker(homeDirExistsChecker);
+    private void givenHomeDirDoesNotExist(final String username, final ServerSession session) {
         given(homeDirExistsChecker.check(username, session)).willReturn(false);
-        //when
-        val result = subject.authenticate(username, password, session);
-        //then
-        assertThat(result).isFalse();
+    }
+
+    private void givenUser(final String username, final String password) {
+        subject.addUser(username, password);
+    }
+
+    private void authenticate(final String username, final String password, final ServerSession session) {
+        authenticationResult = subject.authenticate(username, password, session);
+    }
+
+    @Nested
+    class InvalidAuthentication {
+
+        @AfterEach
+        void thenAuthenticationShouldFail() {
+            assertThat(authenticationResult).isFalse();
+        }
+
+        @Test
+        void givenInvalidUser() {
+            authenticate("invalid", password, session);
+        }
+
+        @Test
+        void givenInvalidPassword() {
+            authenticate(username, "wrong", session);
+        }
+
+        @Test
+        void givenMissingHome() {
+            //given
+            givenHomeDirDoesNotExist(username, session);
+            //when
+            authenticate(username, password, session);
+        }
+
+    }
+
+    @Nested
+    class ValidAuthentication{
+
+        @AfterEach
+        void thenAuthenticationShouldSucceed() {
+            assertThat(authenticationResult).isTrue();
+        }
+
+        @Test
+        void givenValidUsernameAndPasswordAndHomeExists() {
+            authenticate(username, password, session);
+        }
+
     }
 
     @Test
-    public void authenticateWithValidUserValidPasswordAndMissingHomeChecker() throws Exception {
+    void givenMissingHomeCheckerThenThrowException() {
         //given
-        val username = "username";
-        val password = "password";
-        subject.addUser(username, password);
-        val session = mock(ServerSession.class);
-        exception.expect(NullPointerException.class);
-        exception.expectMessage("No HomeDirExistsChecker set");
-        //when
-        val result = subject.authenticate(username, password, session);
+        subject.setHomeDirExistsChecker(null);
         //then
-        assertThat(result).isFalse();
+        assertThatNullPointerException()
+                .isThrownBy(() -> authenticate(username, password, session))
+                .withMessage("No HomeDirExistsChecker set");
     }
+
 }

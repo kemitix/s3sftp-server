@@ -5,14 +5,14 @@ import org.apache.sshd.server.SshServer;
 import org.apache.sshd.server.auth.password.PasswordAuthenticator;
 import org.apache.sshd.server.auth.pubkey.AcceptAllPublickeyAuthenticator;
 import org.apache.sshd.server.session.ServerSession;
-import org.hamcrest.core.IsInstanceOf;
-import org.junit.Before;
+import org.assertj.core.api.ThrowableAssert;
+import org.assertj.core.api.WithAssertions;
 import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.migrationsupport.rules.EnableRuleMigrationSupport;
 import org.junit.rules.TemporaryFolder;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 
 import java.io.File;
 import java.io.IOException;
@@ -21,23 +21,18 @@ import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 
-/**
- * Tests for {@link DefaultS3SftpServer}.
- *
- * @author Paul Campbell (paul.campbell@hubio.com)
- */
-public class DefaultS3SftpServerTest {
+@EnableRuleMigrationSupport
+class DefaultS3SftpServerTest implements WithAssertions {
 
     private static final String HOSTKEY =
-            "-----BEGIN RSA PRIVATE KEY-----\n" + "MIIEpAIBAAKCAQEAp0oxAoPJXBnkg4S0i0TvrFrnyK4MHP7JrFFk5t0cCixq43wQ\n"
+              "-----BEGIN RSA PRIVATE KEY-----\n"
+            + "MIIEpAIBAAKCAQEAp0oxAoPJXBnkg4S0i0TvrFrnyK4MHP7JrFFk5t0cCixq43wQ\n"
             + "R09VvLh0dZhdUe+uIyLEBYzGdZMqmgFiPRG0oFoQJ/YoRkJ7Y00ajKoCgiVrkPV2\n"
             + "Q7aYacfkayF2jnugwq5bAAspw4jQqVitRimT8yQcahPltgqFlubgWdc1ehOE9eCL\n"
             + "QaHihL/qCteN/Keaj3aFfx9QqbA9RjARFDRhiWYQ+QF8UTI2KJ8ZoMJEEGEQfMlV\n"
@@ -61,225 +56,222 @@ public class DefaultS3SftpServerTest {
             + "F6qtR9q46bH7Bq1PVIIyC3YGO4NwqoknFnHwx6IlkjflYFCxeeF6pZae7gjlKTrM\n"
             + "ImARQ1UCgYBcRfZci4aDS4wuZF8euLfmc6k1ZW6tSk6RN0U/fIH8tOmr3N/yISLx\n"
             + "6y8FbjkT++WtLRDEAJ+/uSTW0gnJNr5xvvXFSkI9AwOv6jA5Oufo4ZNDuUZ92f/8\n"
-            + "jfuqbPp3XxkGc0K2KWb8YhL+qD3CpId39FeIM2b8CSqB7p4R7YukrA==\n" + "-----END RSA PRIVATE KEY-----\n";
+            + "jfuqbPp3XxkGc0K2KWb8YhL+qD3CpId39FeIM2b8CSqB7p4R7YukrA==\n"
+            + "-----END RSA PRIVATE KEY-----\n";
+
+    private ServerSession serverSession = mock(ServerSession.class);
 
     private S3SftpServer subject;
-
     private int port;
-
-    private String hostKeyAlgorithm;
-
     private String hostKeyPrivate;
-
     private File hostKeyPrivateFile;
-
     private AuthenticationProvider authenticationProvider;
-
-    private SessionBucket sessionBucket;
-
-    private SessionHome sessionHome;
-
-    private String uri;
-
-    private Map<String, String> users;
-
-    private String bucket;
-
-    private String home;
-
-    @Rule
-    public TemporaryFolder folder = new TemporaryFolder();
-
-    @Rule
-    public ExpectedException exception = ExpectedException.none();
-
-    private SftpSession sftpSession;
-
-    @Mock
-    private ServerSession serverSession;
-
-    @Before
-    public void setUp() throws Exception {
-        MockitoAnnotations.initMocks(this);
-        hostKeyAlgorithm = "RSA";
-        users = new HashMap<>();
-        bucket = "bucket";
-        sessionBucket = S3SftpServer.simpleSessionBucket(bucket);
-        home = "home";
-        sessionHome = S3SftpServer.perUserHome(home);
-        uri = "uri";
-        sftpSession = SftpSession.of(serverSession);
-    }
+    private Map<String, String> users = new HashMap<>();
+    private String bucket = "bucket";
+    private String home = "home";
+    private SftpSession sftpSession = SftpSession.of(serverSession);
+    private SessionBucket sessionBucket = S3SftpServer.simpleSessionBucket(bucket);
+    private SessionHome sessionHome = S3SftpServer.perUserHome(home);
 
     private S3SftpServer createServer() {
-        return S3SftpServer.using(S3SftpServerConfiguration.builder()
-                                                           .port(port)
-                                                           .hostKeyAlgorithm(hostKeyAlgorithm)
-                                                           .hostKeyPrivate(hostKeyPrivate)
-                                                           .hostKeyPrivateFile(hostKeyPrivateFile)
-                                                           .authenticationProvider(authenticationProvider)
-                                                           .sessionBucket(sessionBucket)
-                                                           .sessionHome(sessionHome)
-                                                           .uri(uri)
-                                                           .build());
+        final String hostKeyAlgorithm = "RSA";
+        final String uri = "uri";
+        return S3SftpServer.using(
+                S3SftpServerConfiguration.builder()
+                        .port(port)
+                        .hostKeyAlgorithm(hostKeyAlgorithm)
+                        .hostKeyPrivate(hostKeyPrivate)
+                        .hostKeyPrivateFile(hostKeyPrivateFile)
+                        .authenticationProvider(authenticationProvider)
+                        .sessionBucket(sessionBucket)
+                        .sessionHome(sessionHome)
+                        .uri(uri)
+                        .build());
     }
 
-    private void useFileHostKey() throws IOException {
-        hostKeyPrivateFile = folder.newFile();
-        Files.write(hostKeyPrivateFile.toPath(), HOSTKEY.getBytes(StandardCharsets.UTF_8));
+    @Nested
+    class ThenDoesNotThrowAnyException {
+
+        private ThrowableAssert.ThrowingCallable callable;
+
+        @Rule
+        public TemporaryFolder folder = new TemporaryFolder();
+
+        private void useFileHostKey() throws IOException {
+            hostKeyPrivateFile = folder.newFile();
+            Files.write(hostKeyPrivateFile.toPath(), HOSTKEY.getBytes(StandardCharsets.UTF_8));
+        }
+
+        @AfterEach
+        void thenDoesNotThrowAnyException() {
+            subject = createServer();
+            callable = () -> {
+                subject.start();
+                subject.stop();
+            };
+            assertThatCode(callable).doesNotThrowAnyException();
+        }
+
+        @Test
+        void startAndStopWithHostKeyStringAndPasswordAuth() {
+            //given
+            hostKeyPrivate = HOSTKEY;
+            authenticationProvider = S3SftpServer.simpleAuthenticator(users);
+        }
+
+        @Test
+        void startAndStopWithHostKeyFileAndPasswordAuth() throws IOException {
+            //given
+            useFileHostKey();
+            authenticationProvider = S3SftpServer.simpleAuthenticator(users);
+        }
+
+        @Test
+        void startAndStopWithHostKeyStringAndPublicKeyAuth() {
+            //given
+            hostKeyPrivate = HOSTKEY;
+            authenticationProvider = S3SftpServer.publicKeyAuthenticator(AcceptAllPublickeyAuthenticator.INSTANCE);
+        }
+
     }
 
     @Test
-    public void startAndStopWithHostKeyStringAndPasswordAuth() {
+    void shouldErrorWhenNoHostKey() {
         //given
-        hostKeyPrivate = HOSTKEY;
         authenticationProvider = S3SftpServer.simpleAuthenticator(users);
         subject = createServer();
         //when
-        subject.start();
-        subject.stop();
+        final ThrowableAssert.ThrowingCallable callable = () -> subject.start();
+        //then
+        assertThatCode(callable)
+                .isInstanceOf(S3SftpServerStartException.class)
+                .hasMessage("Could not load host key");
+    }
+
+    @Nested
+    class CouldNotLoadHostKey {
+
+        @AfterEach
+        void thenCouldNotLoadHostKey() {
+            assertThatCode(() -> createServer().start())
+                    .isInstanceOf(S3SftpServerStartException.class)
+                    .hasMessage("Could not load host key");
+        }
+
+        @Test
+        void shouldErrorWhenHostKeyIsEmpty() {
+            //given
+            authenticationProvider = S3SftpServer.simpleAuthenticator(users);
+            hostKeyPrivate = "";
+        }
+
+        @Test
+        void shouldErrorWhenPrivateHostKeyIsNull() {
+            //given
+            authenticationProvider = S3SftpServer.simpleAuthenticator(users);
+            hostKeyPrivate = null;
+        }
+
     }
 
     @Test
-    public void startAndStopWithHostKeyFileAndPasswordAuth() throws IOException {
-        //given
-        useFileHostKey();
-        authenticationProvider = S3SftpServer.simpleAuthenticator(users);
-        subject = createServer();
-        //when
-        subject.start();
-        subject.stop();
-    }
-
-    @Test
-    public void startAndStopWithHostKeyStringAndPublicKeyAuth() {
-        //given
-        hostKeyPrivate = HOSTKEY;
-        authenticationProvider = S3SftpServer.publicKeyAuthenticator(AcceptAllPublickeyAuthenticator.INSTANCE);
-        subject = createServer();
-        //when
-        subject.start();
-        subject.stop();
-    }
-
-    @Test
-    public void shouldErrorWhenNoHostKey() {
-        //given
-        authenticationProvider = S3SftpServer.simpleAuthenticator(users);
-        subject = createServer();
-        exception.expect(S3SftpServerStartException.class);
-        exception.expectMessage("Could not load host key");
-        //when
-        subject.start();
-    }
-
-    @Test
-    public void shouldErrorWhenHostKeyIsEMpty() {
-        //given
-        authenticationProvider = S3SftpServer.simpleAuthenticator(users);
-        hostKeyPrivate = "";
-        subject = createServer();
-        exception.expect(S3SftpServerStartException.class);
-        exception.expectMessage("Could not load host key");
-        //when
-        subject.start();
-    }
-
-    @Test
-    public void shouldErrorWhenNoAuthenticationProvider() {
+    void shouldErrorWhenNoAuthenticationProvider() {
         //given
         authenticationProvider = null;
-        exception.expect(NullPointerException.class);
-        exception.expectMessage("authenticationProvider");
         //when
-        createServer();
+        final ThrowableAssert.ThrowingCallable callable = this::createServer;
+        //then
+        assertThatCode(callable)
+                .isInstanceOf(NullPointerException.class)
+                .hasMessageContaining("authenticationProvider");
     }
 
     @Test
-    public void shouldErrorWhenPrivateHostKeyIsNull() {
-        //given
-        authenticationProvider = S3SftpServer.simpleAuthenticator(users);
-        hostKeyPrivate = null;
-        subject = createServer();
-        exception.expect(S3SftpServerStartException.class);
-        exception.expectMessage("Could not load host key");
-        exception.expectCause(IsInstanceOf.instanceOf(IllegalStateException.class));
-        //when
-        subject.start();
-    }
-
-    @Test
-    public void shouldErrorWhenPortIsInvalid() {
+    void shouldErrorWhenPortIsInvalid() {
         //given
         authenticationProvider = S3SftpServer.simpleAuthenticator(users);
         hostKeyPrivate = HOSTKEY;
         // not running as root so permission should be denied
         port = 22;
         subject = createServer();
-        exception.expect(S3SftpServerStartException.class);
-        exception.expectMessage("Could not start server");
-        exception.expectCause(IsInstanceOf.instanceOf(IOException.class));
         //when
-        subject.start();
+        final ThrowableAssert.ThrowingCallable callable = () -> subject.start();
+        //then
+        assertThatCode(callable)
+                .isInstanceOf(S3SftpServerStartException.class)
+                .hasMessage("Could not start server")
+                .hasCauseInstanceOf(IOException.class);
     }
 
     @Test
-    public void simpleAuthenticatorShouldErrorWhenUsersIsNull() {
+    void simpleAuthenticatorShouldErrorWhenUsersIsNull() {
         //given
-        exception.expect(NullPointerException.class);
-        exception.expectMessage("users");
+        final Map<String, String> users = null;
         //when
-        S3SftpServer.simpleAuthenticator(null);
+        final ThrowableAssert.ThrowingCallable callable = () ->
+                S3SftpServer.simpleAuthenticator(users);
+        //then
+        assertThatNullPointerException()
+                .isThrownBy(callable)
+                .withMessageContaining("users");
     }
 
     @Test
-    public void simpleSessionBucketShouldReturnBucket() {
+    void simpleSessionBucketShouldReturnBucket() {
         //given
-        val sessionBucket = S3SftpServer.simpleSessionBucket(bucket);
+        sessionBucket = S3SftpServer.simpleSessionBucket(bucket);
         //when
-        val result = sessionBucket.getBucket(sftpSession);
+        final String result = sessionBucket.getBucket(sftpSession);
         //then
         assertThat(result).isSameAs(bucket);
     }
 
     @Test
-    public void simpleSessionBucketShouldErrorWhenBucketIsNull() {
+    void simpleSessionBucketShouldErrorWhenBucketIsNull() {
         //given
-        exception.expect(NullPointerException.class);
-        exception.expectMessage("bucket");
+        final String bucket = null;
         //when
-        S3SftpServer.simpleSessionBucket(null);
+        final ThrowableAssert.ThrowingCallable callable = () ->
+                S3SftpServer.simpleSessionBucket(bucket);
+        //then
+        assertThatNullPointerException()
+                .isThrownBy(callable)
+                .withMessageContaining("bucket");
     }
 
     @Test
-    public void simpleSessionHomeShouldReturnHome() {
+    void simpleSessionHomeShouldReturnHome() {
         //given
-        val sessionHome = S3SftpServer.perUserHome(home);
+        sessionHome = S3SftpServer.perUserHome(home);
         given(sftpSession.getServerSession().getUsername()).willReturn("username");
         //when
-        val result = sessionHome.getHomePath(sftpSession);
+        final String result = sessionHome.getHomePath(sftpSession);
         //then
         assertThat(result).isEqualTo("home/username");
     }
 
     @Test
-    public void simpleSessionHomeShouldErrorWhenSubdirIsNull() {
+    void simpleSessionHomeShouldErrorWhenSubdirIsNull() {
         //given
-        exception.expect(NullPointerException.class);
-        exception.expectMessage("subdir");
+        final String subdir = null;
         //when
-        S3SftpServer.perUserHome(null);
+        final ThrowableAssert.ThrowingCallable callable = () ->
+                S3SftpServer.perUserHome(subdir);
+        //then
+        assertThatNullPointerException()
+                .isThrownBy(callable)
+                .withMessageContaining("subdir");
     }
 
     @Test
-    public void whenConfigureAuthenticateionWithPasswordThenAddPasswordFactoryInstance() {
+    void whenConfigureAuthenticateionWithPasswordThenAddPasswordFactoryInstance() {
         //given
-        final AuthenticationProvider authenticationProvider = mock(MyPasswordAuthenticator.class);
-        final S3SftpServerConfiguration configuration = new S3SftpServerConfiguration(
+        val authenticationProvider = mock(MyPasswordAuthenticator.class);
+        val configuration = new S3SftpServerConfiguration(
                 2000, "hka", "hkp", new File("hkfp"),
                 authenticationProvider, sessionBucket, sessionHome, SftpSession::getUsername, "uri");
-        final SshServer sshServer = mock(SshServer.class);
-        final DefaultS3SftpServer server = new DefaultS3SftpServer(sshServer, configuration);
+        val sshServer = mock(SshServer.class);
+        val server = new DefaultS3SftpServer(sshServer, configuration);
         //when
         server.start();
         //then
@@ -287,13 +279,13 @@ public class DefaultS3SftpServerTest {
     }
 
     @Test
-    public void whenStopWhereIOExceptionThenServerStopException() throws IOException {
+    void whenStopWhereIOExceptionThenServerStopException() throws IOException {
         //given
-        final SshServer sshServer = mock(SshServer.class);
-        final DefaultS3SftpServer s3SftpServer = new DefaultS3SftpServer(sshServer, mock(S3SftpServerConfiguration.class));
+        val sshServer = mock(SshServer.class);
+        val s3SftpServer = new DefaultS3SftpServer(sshServer, mock(S3SftpServerConfiguration.class));
         doThrow(IOException.class).when(sshServer).stop();
         //then
-        assertThatThrownBy(() -> s3SftpServer.stop())
+        assertThatThrownBy(s3SftpServer::stop)
                 .isInstanceOf(S3SftpServerStopException.class);
     }
 

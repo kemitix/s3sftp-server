@@ -3,165 +3,145 @@ package com.hubio.s3sftp.server.filesystem;
 import com.amazonaws.services.s3.AmazonS3;
 import com.upplication.s3fs.AmazonS3Factory;
 import com.upplication.s3fs.S3FileSystem;
+import com.upplication.s3fs.S3FileSystemProvider;
 import lombok.val;
 import net.kemitix.mon.result.Result;
 import org.apache.sshd.common.session.Session;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.assertj.core.api.ThrowableAssert;
+import org.assertj.core.api.WithAssertions;
+import org.junit.jupiter.api.Test;
 
 import java.net.URI;
 import java.util.*;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assumptions.assumeThat;
+import static org.mockito.Mockito.mock;
 
-/**
- * Tests for {@link DelegatableS3FileSystemProvider}.
- *
- * @author Paul Campbell (paul.campbell@hubio.com)
- */
-public class DelegatableS3FileSystemProviderTest {
+class DelegatableS3FileSystemProviderTest implements WithAssertions {
 
-    private DelegatableS3FileSystemProvider subject;
-
-    @Mock
-    private AmazonS3 amazonS3;
-
-    @Mock
-    private Session session;
-
-    @Before
-    public void setUp() throws Exception {
-        MockitoAnnotations.initMocks(this);
-        subject = new DelegatableS3FileSystemProvider(session);
-    }
+    private final AmazonS3 amazonS3 = mock(AmazonS3.class);
+    private final Session session = mock(Session.class);
+    private final DelegatableS3FileSystemProvider subject = new DelegatableS3FileSystemProvider(session);
 
     @Test
-    public void getFileSystemKey() throws Exception {
+    void getFileSystemKey() {
         //given
-        final URI uri = URI.create("s3://uri");
-        final Properties props = new Properties();
+        val uri = URI.create("s3://uri");
+        val props = new Properties();
         //when
-        val result = subject.getFileSystemKey(uri, props);
+        final String result = subject.getFileSystemKey(uri, props);
         //then
         assertThat(result).isEqualTo("uri");
     }
 
     @Test
-    public void validateUri() throws Exception {
+    void validateUri() {
         //given
-        final URI uri = URI.create("s3://uri");
+        val uri = URI.create("s3://uri");
         //when
-        subject.validateUri(uri);
+        final ThrowableAssert.ThrowingCallable callable = () ->
+                subject.validateUri(uri);
         //then
-        assertThat(true).as("No exception is thrown")
-                        .isTrue();
+        assertThatCode(callable).doesNotThrowAnyException();
     }
 
     @Test
-    public void overloadProperties() throws Exception {
+    void overloadProperties() {
         //given
-        final Properties props = new Properties();
         final Map<String, String> env = new HashMap<>();
-        final String accessKey = "access key";
+        val accessKey = "access key";
         env.put(AmazonS3Factory.ACCESS_KEY, accessKey);
-        final String secretKey = "secret key";
+        val secretKey = "secret key";
         env.put(AmazonS3Factory.SECRET_KEY, secretKey);
         //when
+        val props = new Properties();
         subject.overloadProperties(props, env);
         //then
-        assertThat(props).contains(new AbstractMap.SimpleEntry<>(AmazonS3Factory.ACCESS_KEY, accessKey))
-                         .contains(new AbstractMap.SimpleEntry<>(AmazonS3Factory.SECRET_KEY, secretKey));
+        assertThat(props).containsEntry(AmazonS3Factory.ACCESS_KEY, accessKey)
+                         .containsEntry(AmazonS3Factory.SECRET_KEY, secretKey);
     }
 
     @Test
-    public void fileSystemExists() throws Exception {
+    void fileSystemExists() {
         //given
-        final URI uri = URI.create("s3://uri");
+        val uri = URI.create("s3://uri");
         final Map<String, String> env = new HashMap<>();
-
         /// force closure of any file systems held in static map in core FileSystemProvider
         subject.getAllFileSystems()
                .forEach(subject::close);
+        assumeThat(subject.fileSystemExists(uri, env))
+                .as("filesystem does not exist")
+                .isFalse();
         //when
-        val resultFalse = subject.fileSystemExists(uri, env);
-        //then
-        assertThat(resultFalse).as("filesystem does not exist")
-                               .isFalse();
-
-        //given
         subject.newFileSystem(uri, subject.mapAsProperties(env));
-        //when
-        val resultTrue = subject.fileSystemExists(uri, env);
+        final boolean resultTrue = subject.fileSystemExists(uri, env);
         //then
         assertThat(resultTrue).as("filesystem does exist")
                               .isTrue();
     }
 
     @Test
-    public void getS3FileSystemProvider() throws Exception {
-        //given
+    void getS3FileSystemProvider() {
         //when
-        val result = subject.getS3FileSystemProvider();
+        final S3FileSystemProvider result = subject.getS3FileSystemProvider();
         //then
         assertThat(result).isSameAs(subject);
     }
 
     @Test
-    public void overloadPropertiesWithEnv() throws Exception {
+    void overloadPropertiesWithEnv() {
         //given
-        final Properties props = new Properties();
+        val props = new Properties();
         final Map<String, String> env = new HashMap<>();
-        final String key = "key";
-        final String value = "value";
+        val key = "key";
+        val value = "value";
         env.put(key, value);
         env.put("other key", "other value");
         //when
-        val result = subject.overloadPropertiesWithEnv(props, env, key);
+        final boolean result = subject.overloadPropertiesWithEnv(props, env, key);
         //then
         assertThat(result).isTrue();
         assertThat(props).containsExactly(new AbstractMap.SimpleEntry<>(key, value));
     }
 
     @Test
-    public void getAmazonS3WhenSet() throws Exception {
+    void getAmazonS3WhenSet() {
         //given
-        final URI uri = URI.create("S3://uri");
-        final Properties props = new Properties();
+        val uri = URI.create("S3://uri");
+        val props = new Properties();
         subject.setAmazonS3(amazonS3);
         //when
-        val result = subject.getAmazonS3(uri, props);
+        final AmazonS3 result = subject.getAmazonS3(uri, props);
         //then
         assertThat(result).isSameAs(amazonS3);
     }
 
     @Test
-    public void getAmazonS3WhenNotSet() throws Exception {
+    void getAmazonS3WhenNotSet() {
         //given
-        final URI uri = URI.create("S3://uri");
-        final Properties props = new Properties();
+        val uri = URI.create("S3://uri");
+        val props = new Properties();
         //when
-        val result = subject.getAmazonS3(uri, props);
+        final AmazonS3 result = subject.getAmazonS3(uri, props);
         //then
         assertThat(result).isNotNull();
     }
 
     @Test
-    public void getAmazonS3Factory() throws Exception {
+    void getAmazonS3Factory() {
         //given
-        final Properties props = new Properties();
+        val props = new Properties();
         //when
-        val result = subject.getAmazonS3Factory(props);
+        final AmazonS3Factory result = subject.getAmazonS3Factory(props);
         //then
         assertThat(result).isNotNull();
     }
 
     @Test
-    public void newFileSystem() throws Exception {
+    void newFileSystem() {
         //given
-        final URI uri = URI.create("s3://uri1");
-        final Properties props = new Properties();
+        val uri = URI.create("s3://uri1");
+        val props = new Properties();
         //when
         final Result<S3FileSystem> result = subject.newFileSystem(uri, props);
         //then
@@ -169,13 +149,13 @@ public class DelegatableS3FileSystemProviderTest {
     }
 
     @Test
-    public void newFileSystemWithProperties() throws Exception {
+    void newFileSystemWithProperties() {
         //given
-        final String hostname = UUID.randomUUID().toString();
-        final String accessKey = UUID.randomUUID().toString();
-        final String secretKey = UUID.randomUUID().toString();
-        final URI uri = URI.create("s3://" + hostname);
-        final Properties props = new Properties();
+        val hostname = UUID.randomUUID().toString();
+        val accessKey = UUID.randomUUID().toString();
+        val secretKey = UUID.randomUUID().toString();
+        val uri = URI.create("s3://" + hostname);
+        val props = new Properties();
         props.setProperty(AmazonS3Factory.ACCESS_KEY, accessKey);
         props.setProperty(AmazonS3Factory.SECRET_KEY, secretKey);
         //when
@@ -187,14 +167,14 @@ public class DelegatableS3FileSystemProviderTest {
     }
 
     @Test
-    public void mapAsProperties() throws Exception {
+    void mapAsProperties() {
         //given
         final Map<String, String> map = new HashMap<>();
-        final String key = "key";
-        final String value = "value";
+        val key = "key";
+        val value = "value";
         map.put(key, value);
         //when
-        val result = subject.mapAsProperties(map);
+        final Properties result = subject.mapAsProperties(map);
         //then
         assertThat(result).containsExactly(new AbstractMap.SimpleEntry<>(key, value));
     }

@@ -1,81 +1,65 @@
 package com.hubio.s3sftp.server;
 
-import lombok.val;
 import org.apache.sshd.server.session.ServerSession;
-import org.junit.Before;
+import org.assertj.core.api.WithAssertions;
 import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.migrationsupport.rules.EnableRuleMigrationSupport;
 import org.junit.rules.TemporaryFolder;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 
 import java.io.IOException;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
 
-/**
- * Tests for {@link DefaultHomeDirExistsChecker}.
- *
- * @author Paul Campbell (paul.campbell@hubio.com)
- */
-public class DefaultHomeDirExistsCheckerTest {
+@EnableRuleMigrationSupport
+class DefaultHomeDirExistsCheckerTest implements WithAssertions {
 
-    private DefaultHomeDirExistsChecker subject;
+    private final JailedSftpSubsystemFactory sftpSubsystemFactory = mock(JailedSftpSubsystemFactory.class);
+    private final S3FileSystemFactory s3FilesystemFactory = mock(S3FileSystemFactory.class);
+    private final ServerSession session = mock(ServerSession.class);
+    private final JailedSftpSubsystem sftpSubsystem = mock(JailedSftpSubsystem.class);
+    private final String username = "username";
 
-    @Mock
-    private JailedSftpSubsystemFactory sftpSubsystemFactory;
-
-    @Mock
-    private S3FileSystemFactory s3FilesystemFactory;
-
-    private String username;
-
-    @Mock
-    private ServerSession session;
-
-    @Mock
-    private JailedSftpSubsystem sftpSubsystem;
+    private final DefaultHomeDirExistsChecker subject =
+            new DefaultHomeDirExistsChecker(sftpSubsystemFactory, s3FilesystemFactory);
 
     @Rule
     public TemporaryFolder folder = new TemporaryFolder();
 
-    @Before
-    public void setUp() throws Exception {
-        MockitoAnnotations.initMocks(this);
-        subject = new DefaultHomeDirExistsChecker(sftpSubsystemFactory, s3FilesystemFactory);
-        username = "username";
+    @BeforeEach
+    void setUp() {
         given(sftpSubsystemFactory.create()).willReturn(sftpSubsystem);
     }
 
     @Test
-    public void shouldFindHomeDir() throws Exception {
+    void shouldFindHomeDir() throws Exception {
         //given
-        val mockHome = folder.newFolder()
-                             .toPath();
+        final Path mockHome = folder.newFolder().toPath();
         given(sftpSubsystem.resolveFile(any())).willReturn(mockHome);
         //when
-        val result = subject.check(username, session);
+        final boolean result = subject.check(username, session);
         //then
         assertThat(result).isTrue();
     }
 
     @Test
-    public void shouldNotFindHomeDir() throws Exception {
+    void shouldNotFindHomeDir() {
         //given
         given(sftpSubsystem.resolveFile(any())).willReturn(Paths.get("/garbage"));
         //when
-        val result = subject.check(username, session);
+        final boolean result = subject.check(username, session);
         //then
         assertThat(result).isFalse();
     }
 
     @Test
-    public void shouldHandleIOException() throws Exception {
+    void shouldHandleIOException() throws Exception {
         //given
         doThrow(IOException.class).when(s3FilesystemFactory)
                                   .createFileSystem(session);

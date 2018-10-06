@@ -1,25 +1,20 @@
 package com.hubio.s3sftp.server;
 
 import lombok.val;
-import org.junit.Test;
+import org.assertj.core.api.WithAssertions;
+import org.junit.jupiter.api.Test;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
-/**
- * Tests for {@link S3SftpServerStartException}.
- *
- * @author Paul Campbell (paul.campbell@hubio.com)
- */
-public class S3SftpServerStartExceptionTest {
+class S3SftpServerStartExceptionTest implements WithAssertions {
 
     @Test
-    public void shouldCreateException() throws Exception{
+    void shouldCreateException() {
         //given
-        final Throwable cause = mock(Throwable.class);
-        final String message = "message";
+        val cause = mock(Throwable.class);
+        val message = "message";
         //when
-        val exception = new S3SftpServerStartException(message, cause);
+        final S3SftpServerStartException exception = new S3SftpServerStartException(message, cause);
         //then
         assertThat(exception.getMessage()).isSameAs(message);
         assertThat(exception.getCause()).isSameAs(cause);
