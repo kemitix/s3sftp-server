@@ -24,6 +24,7 @@
 package com.hubio.s3sftp.server;
 
 import lombok.val;
+import org.apache.sshd.server.auth.password.PasswordAuthenticator;
 import org.apache.sshd.server.session.ServerSession;
 
 import java.util.Objects;
@@ -36,7 +37,7 @@ import java.util.Objects;
  *
  * @author Paul Campbell (paul.campbell@hubio.com)
  */
-public interface PasswordAuthenticationProvider extends AuthenticationProvider {
+public interface PasswordAuthenticationProvider extends AuthenticationProvider, PasswordAuthenticator {
 
     /**
      * Authenticate the username and password for the session.

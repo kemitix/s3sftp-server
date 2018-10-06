@@ -265,9 +265,9 @@ class DefaultS3SftpServerTest implements WithAssertions {
     }
 
     @Test
-    void whenConfigureAuthenticateionWithPasswordThenAddPasswordFactoryInstance() {
+    void whenConfigureAuthenticationWithPasswordThenAddPasswordFactoryInstance() {
         //given
-        val authenticationProvider = mock(MyPasswordAuthenticator.class);
+        val authenticationProvider = S3SftpServer.simpleAuthenticator(users);
         val configuration = new S3SftpServerConfiguration(
                 2000, "hka", "hkp", new File("hkfp"),
                 authenticationProvider, sessionBucket, sessionHome, SftpSession::getUsername, "uri");
