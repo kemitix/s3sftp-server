@@ -15,9 +15,9 @@ import java.net.URI;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
 
 /**
  * Tests for {@link }.
@@ -46,7 +46,7 @@ public class S3FileSystemFactoryTest {
     private UserFileSystemResolver userFileSystemResolver;
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         MockitoAnnotations.initMocks(this);
         sftpSession = SftpSession.of(serverSession);
         subject = new S3FileSystemFactory(session -> "bucket", session -> "home", session -> "", URI.create("uri"),

@@ -1,10 +1,6 @@
 package com.hubio.s3sftp.server.filesystem;
 
 import com.hubio.s3sftp.server.S3SftpServer;
-import com.hubio.s3sftp.server.filesystem.FilteredS3FileSystem;
-import com.hubio.s3sftp.server.filesystem.S3SftpFileSystemProvider;
-import com.hubio.s3sftp.server.filesystem.SingleBucketS3SftpFileSystemProvider;
-import com.upplication.s3fs.S3FileSystem;
 import lombok.val;
 import me.andrz.builder.map.MapBuilder;
 import org.assertj.core.api.SoftAssertions;
@@ -22,10 +18,10 @@ import java.util.Map;
 import java.util.Properties;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 
@@ -45,13 +41,13 @@ public class SingleBucketS3SftpFileSystemProviderTest {
     public ExpectedException exception = ExpectedException.none();
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         MockitoAnnotations.initMocks(this);
         subject = new SingleBucketS3SftpFileSystemProvider(delegate);
     }
 
     @Test
-    public void overloadProperties() throws Exception {
+    public void overloadProperties() {
         //given
         val props = new Properties();
         val env = new HashMap<String, String>();
@@ -67,7 +63,7 @@ public class SingleBucketS3SftpFileSystemProviderTest {
     }
 
     @Test
-    public void overloadPropertiesWhenBucketIsMissing() throws Exception {
+    public void overloadPropertiesWhenBucketIsMissing() {
         //given
         val props = new Properties();
         val env = new HashMap<String, String>();
@@ -107,7 +103,7 @@ public class SingleBucketS3SftpFileSystemProviderTest {
     }
 
     @Test
-    public void newFileSystemWhenBucketIsMissing() throws Exception {
+    public void newFileSystemWhenBucketIsMissing() {
         //given
         val hostname = "uri";
         val uri = URI.create("s3://" + hostname);
@@ -119,7 +115,7 @@ public class SingleBucketS3SftpFileSystemProviderTest {
     }
 
     @Test
-    public void getFileSystemWhenExists() throws Exception {
+    public void getFileSystemWhenExists() {
         //given
         final URI uri = URI.create("s3://uri");
         final Map<String, String> env = new MapBuilder<String, String>().build();
@@ -133,7 +129,7 @@ public class SingleBucketS3SftpFileSystemProviderTest {
     }
 
     @Test
-    public void getFileSystemWhenDoesNotExist() throws Exception {
+    public void getFileSystemWhenDoesNotExist() {
         //given
         final URI uri = URI.create("s3://uri");
         final Map<String, String> env = new MapBuilder<String, String>().build();

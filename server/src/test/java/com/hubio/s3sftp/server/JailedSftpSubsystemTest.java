@@ -21,10 +21,9 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.ExecutorService;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Matchers.anyObject;
 import static org.mockito.Mockito.mock;
 
 /**
@@ -97,9 +96,9 @@ public class JailedSftpSubsystemTest implements WithAssertions {
                     .willReturn(SftpSubsystem.DEFAULT_FILE_HANDLE_ROUNDS);
             sftpSubsystem.setSession(serverSession);
             sftpSession = SftpSession.of(serverSession);
-            given(sessionBucket.getBucket(anyObject())).willReturn(bucket);
-            given(sessionJail.getJail(anyObject())).willReturn("");
-            given(sessionHome.getHomePath(anyObject())).willReturn("");
+            given(sessionBucket.getBucket(any())).willReturn(bucket);
+            given(sessionJail.getJail(any())).willReturn("");
+            given(sessionHome.getHomePath(any())).willReturn("");
             given(userFileSystemResolver.resolve(username)).willReturn(Optional.of(s3FileSystem));
             given(s3FileSystem.getSeparator()).willReturn("/");
         }
@@ -164,7 +163,7 @@ public class JailedSftpSubsystemTest implements WithAssertions {
 
             @Before
             public void setUp() {
-                given(sessionHome.getHomePath(anyObject())).willReturn(username);
+                given(sessionHome.getHomePath(any())).willReturn(username);
             }
 
             @Test
@@ -240,8 +239,8 @@ public class JailedSftpSubsystemTest implements WithAssertions {
 
             @Before
             public void setUp() {
-                given(sessionHome.getHomePath(anyObject())).willReturn(String.format("users/%s", username));
-                given(sessionJail.getJail(anyObject())).willReturn("users");
+                given(sessionHome.getHomePath(any())).willReturn(String.format("users/%s", username));
+                given(sessionJail.getJail(any())).willReturn("users");
                 // i.e. user should only see their own username as the visible path
             }
 
@@ -296,8 +295,8 @@ public class JailedSftpSubsystemTest implements WithAssertions {
             @Test
             public void homeIsOutsideJail() {
                 //given
-                given(sessionJail.getJail(anyObject())).willReturn("jail");
-                given(sessionHome.getHomePath(anyObject())).willReturn("home");
+                given(sessionJail.getJail(any())).willReturn("jail");
+                given(sessionHome.getHomePath(any())).willReturn("home");
                 //then
                 assertThatExceptionOfType(SftpServerJailMappingException.class)
                         .isThrownBy(() -> sftpSubsystem.resolveFile("."))
