@@ -9,10 +9,12 @@ import me.andrz.builder.map.MapBuilder;
 import net.kemitix.mon.result.Result;
 import org.apache.sshd.common.io.IoSession;
 import org.apache.sshd.common.session.Session;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import org.assertj.core.api.ThrowableAssert;
+import org.assertj.core.api.WithAssertions;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
@@ -31,166 +33,105 @@ import java.nio.file.attribute.FileAttributeView;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.mock;
 
-/**
- * Tests for {@link InvertedS3FileSystemProvider}.
- *
- * @author Paul Campbell (paul.campbell@hubio.com)
- */
-public class InvertedS3FileSystemProviderTest {
+class InvertedS3FileSystemProviderTest implements WithAssertions {
 
-    private InvertedS3FileSystemProvider subject;
+    private final S3SftpFileSystemProvider delegate = mock(S3SftpFileSystemProvider.class);
+    private final Session session = mock(Session.class);
+    private final IoSession ioSession = mock(IoSession.class);
+    private final SocketAddress remoteAddress = InetSocketAddress.createUnresolved("localhost", 22);
 
-    @Mock
-    private S3SftpFileSystemProvider delegate;
+    private final InvertedS3FileSystemProvider subject = new InvertedS3FileSystemProvider(delegate);
 
     @Mock
-    private Session session;
+    private DirectoryStream<Path> directoryStreamPath;
 
-    @Mock
-    private IoSession ioSession;
-
-    @Rule
-    public ExpectedException exception = ExpectedException.none();
-
-    private SocketAddress remoteAddress;
-
-    @Before
-    public void setUp() {
-        MockitoAnnotations.initMocks(this);
-        subject = new InvertedS3FileSystemProvider(delegate);
+    @BeforeEach
+    void setUp() {
         given(delegate.getSession()).willReturn(session);
         given(session.getUsername()).willReturn("username");
         given(session.getIoSession()).willReturn(ioSession);
-        remoteAddress = InetSocketAddress.createUnresolved("localhost", 22);
         given(ioSession.getRemoteAddress()).willReturn(remoteAddress);
     }
 
     @Test
-    public void getScheme() {
-        //given
-        exception.expect(UnsupportedOperationException.class);
-        exception.expectMessage("Inverted - getScheme");
-        //when
-        subject.getScheme();
+    void getScheme() {
+        assertThatCode(subject::getScheme)
+                .isInstanceOf(UnsupportedOperationException.class)
+                .hasMessage("Inverted - getScheme");
     }
 
     @Test
-    public void newFileSystem() {
+    void newFileSystem() {
         //given
-        final URI uri = URI.create("s3://uri");
+        val uri = URI.create("s3://uri");
         final Map<String, String> env = new HashMap<>();
-        final S3FileSystem expected = mock(S3FileSystem.class);
+        val expected = mock(S3FileSystem.class);
         given(delegate.newFileSystem(eq(uri), any())).willReturn(Result.ok(expected));
         //when
-        val result = subject.newFileSystem(uri, env);
+        final FileSystem result = subject.newFileSystem(uri, env);
         //then
         assertThat(result).isSameAs(expected);
     }
 
     @Test
-    public void newFileSystem1() throws Exception {
+    void newFileSystem1() throws Exception {
         //given
-        final Path path = mock(Path.class);
+        val path = mock(Path.class);
         final Map<String, String> env = new HashMap<>();
-        final S3FileSystem expected = mock(S3FileSystem.class);
+        val expected = mock(S3FileSystem.class);
         given(delegate.newFileSystem(eq(path), any())).willReturn(expected);
         //when
-        val result = subject.newFileSystem(path, env);
+        final FileSystem result = subject.newFileSystem(path, env);
         //then
         assertThat(result).isSameAs(expected);
     }
 
     @Test
-    public void getFileSystemKey() {
+    void getFileSystemKey() {
         //given
-        final URI uri = URI.create("s3://uri");
-        final Properties props = new Properties();
-        final String expected = "expected";
+        val uri = URI.create("s3://uri");
+        val props = new Properties();
+        val expected = "expected";
         given(delegate.getFileSystemKey(uri, props)).willReturn(expected);
         //when
-        val result = subject.getFileSystemKey(uri, props);
+        final String result = subject.getFileSystemKey(uri, props);
         //then
         assertThat(result).isSameAs(expected);
     }
 
     @Test
-    public void validateUri() {
+    void overloadProperties() {
         //given
-        final URI uri = URI.create("s3://uri");
-        exception.expect(UnsupportedOperationException.class);
-        exception.expectMessage("Inverted - validateUri");
-        //when
-        subject.validateUri(uri);
-    }
-
-    @Test
-    public void overloadProperties() {
-        //given
-        final Properties props = new Properties();
+        val props = new Properties();
         final Map<String, ?> env = new HashMap<>();
         //when
         subject.overloadPropertiesWithEnv(props, env, "");
         //then
-        then(delegate).should()
-                      .overloadPropertiesWithEnv(props, env, "");
+        then(delegate).should().overloadPropertiesWithEnv(props, env, "");
     }
 
     @Test
-    public void overloadPropertiesWithEnv() {
+    void overloadPropertiesWithEnv() {
         //given
-        final Properties props = new Properties();
+        val props = new Properties();
         final Map<String, ?> env = new HashMap<>();
-        final String key = "key";
+        val key = "key";
         given(delegate.overloadPropertiesWithEnv(props, env, key)).willReturn(true);
         //when
-        val result = subject.overloadPropertiesWithEnv(props, env, key);
+        final boolean result = subject.overloadPropertiesWithEnv(props, env, key);
         //then
-        then(delegate).should()
-                      .overloadPropertiesWithEnv(props, env, key);
+        then(delegate).should().overloadPropertiesWithEnv(props, env, key);
         assertThat(result).isTrue();
     }
 
     @Test
-    public void overloadPropertiesWithSystemProps() {
-        //given
-        final Properties props = new Properties();
-        final String key = "key";
-        exception.expect(UnsupportedOperationException.class);
-        exception.expectMessage("Inverted - overloadPropertiesWithSystemProps");
-        //when
-        subject.overloadPropertiesWithSystemProps(props, key);
-    }
-
-    @Test
-    public void overloadPropertiesWithSystemEnv() {
-        //given
-        final Properties props = new Properties();
-        final String key = "key";
-        exception.expect(UnsupportedOperationException.class);
-        exception.expectMessage("Inverted - overloadPropertiesWithSystemEnv");
-        //when
-        subject.overloadPropertiesWithSystemEnv(props, key);
-    }
-
-    @Test
-    public void systemGetEnv() {
-        //given
-        final String key = "key";
-        exception.expect(UnsupportedOperationException.class);
-        exception.expectMessage("Inverted - systemGetEnv");
-        //when
-        subject.systemGetEnv(key);
-    }
-
-    @Test
-    public void getFileSystem() {
+    void getFileSystemUriEnv() {
         //given
         final URI uri = URI.create("s3://uri");
         final Map<String, ?> env = new HashMap<>();
@@ -203,17 +144,7 @@ public class InvertedS3FileSystemProviderTest {
     }
 
     @Test
-    public void getFileSystem1() {
-        //given
-        final URI uri = URI.create("s3://uri");
-        exception.expect(UnsupportedOperationException.class);
-        exception.expectMessage("Inverted - getFileSystem");
-        //when
-        subject.getFileSystem(uri);
-    }
-
-    @Test
-    public void getPath() {
+    void getPath() {
         //given
         final URI uri = URI.create("s3://uri");
         final Path expected = mock(Path.class);
@@ -225,20 +156,20 @@ public class InvertedS3FileSystemProviderTest {
     }
 
     @Test
-    public void newDirectoryStream() throws Exception {
+    void newDirectoryStream() throws Exception {
+        MockitoAnnotations.initMocks(this);
         //given
         final Path dir = mock(Path.class);
         final DirectoryStream.Filter<? super Path> filter = (DirectoryStream.Filter<Path>) entry -> false;
-        final DirectoryStream<Path> expected = mock(DirectoryStream.class);
-        given(delegate.newDirectoryStream(dir, filter)).willReturn(expected);
+        given(delegate.newDirectoryStream(dir, filter)).willReturn(directoryStreamPath);
         //when
         val result = subject.newDirectoryStream(dir, filter);
         //then
-        assertThat(result).isSameAs(expected);
+        assertThat(result).isSameAs(directoryStreamPath);
     }
 
     @Test
-    public void newInputStream() throws Exception {
+    void newInputStream() throws Exception {
         //given
         final Path path = mock(Path.class);
         final OpenOption options = StandardOpenOption.APPEND;
@@ -251,7 +182,7 @@ public class InvertedS3FileSystemProviderTest {
     }
 
     @Test
-    public void newByteChannel() throws Exception {
+    void newByteChannel() throws Exception {
         //given
         final Path path = mock(Path.class);
         final Set<? extends OpenOption> options = EnumSet.noneOf(StandardOpenOption.class);
@@ -265,7 +196,7 @@ public class InvertedS3FileSystemProviderTest {
     }
 
     @Test
-    public void createDirectory() throws Exception {
+    void createDirectory() throws Exception {
         //given
         final Path path = mock(Path.class);
         final FileAttribute<?>[] attrs = new FileAttribute[0];
@@ -277,7 +208,7 @@ public class InvertedS3FileSystemProviderTest {
     }
 
     @Test
-    public void delete() throws Exception {
+    void delete() throws Exception {
         //given
         final Path path = mock(Path.class);
         //when
@@ -288,7 +219,7 @@ public class InvertedS3FileSystemProviderTest {
     }
 
     @Test
-    public void copy() throws Exception {
+    void copy() throws Exception {
         //given
         final Path source = mock(Path.class);
         final Path target = mock(Path.class);
@@ -301,7 +232,7 @@ public class InvertedS3FileSystemProviderTest {
     }
 
     @Test
-    public void move() throws Exception {
+    void move() throws Exception {
         //given
         final Path source = mock(Path.class);
         final Path target = mock(Path.class);
@@ -314,7 +245,7 @@ public class InvertedS3FileSystemProviderTest {
     }
 
     @Test
-    public void isSameFile() throws Exception {
+    void isSameFile() throws Exception {
         //given
         final Path path1 = mock(Path.class);
         final Path path2 = mock(Path.class);
@@ -329,7 +260,7 @@ public class InvertedS3FileSystemProviderTest {
     }
 
     @Test
-    public void isHidden() throws Exception {
+    void isHidden() throws Exception {
         //given
         final Path path = mock(Path.class);
         given(delegate.isHidden(path)).willReturn(true)
@@ -343,7 +274,7 @@ public class InvertedS3FileSystemProviderTest {
     }
 
     @Test
-    public void getFileStore() throws Exception {
+    void getFileStore() throws Exception {
         //given
         final Path path = mock(Path.class);
         final FileStore expected = mock(FileStore.class);
@@ -355,7 +286,7 @@ public class InvertedS3FileSystemProviderTest {
     }
 
     @Test
-    public void checkAccess() throws Exception {
+    void checkAccess() throws Exception {
         //given
         final Path path = mock(Path.class);
         final AccessMode modes = AccessMode.READ;
@@ -367,7 +298,7 @@ public class InvertedS3FileSystemProviderTest {
     }
 
     @Test
-    public void getFileAttributeView() {
+    void getFileAttributeView() {
         //given
         final Path path = mock(Path.class);
         final Class<FileAttributeView> type = FileAttributeView.class;
@@ -381,7 +312,7 @@ public class InvertedS3FileSystemProviderTest {
     }
 
     @Test
-    public void readAttributes() throws Exception {
+    void readAttributes() throws Exception {
         //given
         final Path path = mock(Path.class);
         final Class<BasicFileAttributes> type = BasicFileAttributes.class;
@@ -395,7 +326,7 @@ public class InvertedS3FileSystemProviderTest {
     }
 
     @Test
-    public void readAttributes1() throws Exception {
+    void readAttributes1() throws Exception {
         //given
         final Path path = mock(Path.class);
         final String attributes = "attributes";
@@ -409,7 +340,7 @@ public class InvertedS3FileSystemProviderTest {
     }
 
     @Test
-    public void setAttribute() throws Exception {
+    void setAttribute() throws Exception {
         //given
         final Path path = mock(Path.class);
         final String attribute = "attribute";
@@ -423,18 +354,7 @@ public class InvertedS3FileSystemProviderTest {
     }
 
     @Test
-    public void createFileSystem() {
-        //given
-        final URI uri = URI.create("s3://uri");
-        final Properties props = new Properties();
-        exception.expect(UnsupportedOperationException.class);
-        exception.expectMessage("Inverted - createFileSystem");
-        //when
-        subject.createFileSystem(uri, props);
-    }
-
-    @Test
-    public void getAmazonS3() {
+    void getAmazonS3() {
         //given
         final URI uri = URI.create("s3://uri");
         final Properties props = new Properties();
@@ -447,7 +367,7 @@ public class InvertedS3FileSystemProviderTest {
     }
 
     @Test
-    public void getAmazonS3Factory() {
+    void getAmazonS3Factory() {
         //given
         final Properties props = new Properties();
         final AmazonS3Factory expected = mock(AmazonS3Factory.class);
@@ -459,16 +379,7 @@ public class InvertedS3FileSystemProviderTest {
     }
 
     @Test
-    public void loadAmazonProperties() {
-        //given
-        exception.expect(UnsupportedOperationException.class);
-        exception.expectMessage("Inverted - loadAmazonProperties");
-        //when
-        subject.loadAmazonProperties();
-    }
-
-    @Test
-    public void close() {
+    void close() {
         //given
         final S3FileSystem s3FileSystem = mock(S3FileSystem.class);
         //when
@@ -478,36 +389,7 @@ public class InvertedS3FileSystemProviderTest {
     }
 
     @Test
-    public void isOpen() {
-        //given
-        final S3FileSystem s3FileSystem = mock(S3FileSystem.class);
-        exception.expect(UnsupportedOperationException.class);
-        exception.expectMessage("Inverted - isOpen");
-        //when
-        subject.isOpen(s3FileSystem);
-    }
-
-    @Test
-    public void getCache() {
-        //given
-        exception.expect(UnsupportedOperationException.class);
-        exception.expectMessage("Inverted - getCache");
-        //when
-        subject.getCache();
-    }
-
-    @Test
-    public void setCache() {
-        //given
-        final Cache cache = mock(Cache.class);
-        exception.expect(UnsupportedOperationException.class);
-        exception.expectMessage("Inverted - setCache");
-        //when
-        subject.setCache(cache);
-    }
-
-    @Test
-    public void newOutputStream() throws Exception {
+    void newOutputStream() throws Exception {
         //given
         final Path path = mock(Path.class);
         final OpenOption options = StandardOpenOption.WRITE;
@@ -520,7 +402,7 @@ public class InvertedS3FileSystemProviderTest {
     }
 
     @Test
-    public void newFileChannel() throws Exception {
+    void newFileChannel() throws Exception {
         //given
         final Path path = mock(Path.class);
         final Set<? extends OpenOption> options = EnumSet.of(StandardOpenOption.READ);
@@ -534,7 +416,7 @@ public class InvertedS3FileSystemProviderTest {
     }
 
     @Test
-    public void newAsynchronousFileChannel() throws Exception {
+    void newAsynchronousFileChannel() throws Exception {
         //given
         final Path path = mock(Path.class);
         final Set<? extends OpenOption> options = EnumSet.of(StandardOpenOption.READ);
@@ -549,7 +431,7 @@ public class InvertedS3FileSystemProviderTest {
     }
 
     @Test
-    public void createSymbolicLink() throws Exception {
+    void createSymbolicLink() throws Exception {
         //given
         final Path link = mock(Path.class);
         final Path target = mock(Path.class);
@@ -562,7 +444,7 @@ public class InvertedS3FileSystemProviderTest {
     }
 
     @Test
-    public void createLink() throws Exception {
+    void createLink() throws Exception {
         //given
         final Path link = mock(Path.class);
         final Path existing = mock(Path.class);
@@ -574,7 +456,7 @@ public class InvertedS3FileSystemProviderTest {
     }
 
     @Test
-    public void deleteIfExists() throws Exception {
+    void deleteIfExists() throws Exception {
         //given
         final Path path = mock(Path.class);
         given(delegate.deleteIfExists(path)).willReturn(true)
@@ -588,7 +470,7 @@ public class InvertedS3FileSystemProviderTest {
     }
 
     @Test
-    public void readSymbolicLink() throws Exception {
+    void readSymbolicLink() throws Exception {
         //given
         final Path link = mock(Path.class);
         final Path expected = mock(Path.class);
@@ -598,4 +480,73 @@ public class InvertedS3FileSystemProviderTest {
         //then
         assertThat(result).isSameAs(expected);
     }
+
+    @Nested
+    class UnsupportedOperations {
+
+        private ThrowableAssert.ThrowingCallable callable;
+
+        @AfterEach
+        void thenThrowsException() {
+            assertThatCode(callable)
+                    .isInstanceOf(UnsupportedOperationException.class)
+                    .hasMessageContaining("Inverted");
+        }
+
+        @Test
+        void validateUri() {
+            callable = () -> subject.validateUri(URI.create("s3://uri"));
+        }
+
+        @Test
+        void overloadPropertiesWithSystemProps() {
+            callable = () -> subject.overloadPropertiesWithSystemProps(new Properties(), "key");
+        }
+
+        @Test
+        void overloadPropertiesWithSystemEnv() {
+            callable = () -> subject.overloadPropertiesWithSystemEnv(new Properties(), "key");
+        }
+
+        @Test
+        void systemGetEnv() {
+            callable = () -> subject.systemGetEnv("key");
+        }
+
+        @Test
+        void getFileSystemUri() {
+            callable = () -> subject.getFileSystem(URI.create("s3://uri"));
+        }
+
+        @Test
+        void createFileSystem() {
+            callable = () -> subject.createFileSystem(URI.create("s3://uri"), new Properties());
+        }
+
+        @Test
+        void loadAmazonProperties() {
+            callable = subject::loadAmazonProperties;
+        }
+
+        @Test
+        void isOpen() {
+            callable = () -> subject.isOpen(mock(S3FileSystem.class));
+        }
+
+        @Test
+        void getCache() {
+            callable = subject::getCache;
+        }
+
+        @Test
+        void setCache() {
+            callable = () -> subject.setCache(mock(Cache.class));
+        }
+
+    }
+
 }
+
+
+
+

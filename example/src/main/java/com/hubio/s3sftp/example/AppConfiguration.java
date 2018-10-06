@@ -23,11 +23,7 @@
 
 package com.hubio.s3sftp.example;
 
-import com.hubio.s3sftp.server.S3SftpServer;
-import com.hubio.s3sftp.server.S3SftpServerConfiguration;
-import com.hubio.s3sftp.server.SessionHome;
-import com.hubio.s3sftp.server.SessionJail;
-import com.hubio.s3sftp.server.SftpSession;
+import com.hubio.s3sftp.server.*;
 import lombok.val;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -120,8 +116,7 @@ class AppConfiguration {
     @Bean
     @Profile({"default", "user"})
     SessionHome sessionHomePerUser() {
-        return (SftpSession session) -> session.getServerSession()
-                                               .getUsername();
+        return SftpSession::getUsername;
     }
 
     /**
@@ -134,12 +129,7 @@ class AppConfiguration {
     @Bean
     @Profile("jailed")
     SessionHome sessionHomeJailed(final Environment environment) {
-        return session -> {
-            val username = session.getServerSession()
-                                  .getUsername();
-            val firstActiveProfile = environment.getActiveProfiles()[0];
-            return String.format("%s/%s", firstActiveProfile, username);
-        };
+        return session -> String.format("%s/%s", environment.getActiveProfiles()[0], session.getUsername());
     }
 
     /**
@@ -161,10 +151,6 @@ class AppConfiguration {
     @Bean
     @Profile("subdir-user")
     SessionHome sessionHomeSubdirUser() {
-        return session -> {
-            val username = session.getServerSession()
-                                  .getUsername();
-            return "subdir" + username;
-        };
+        return session -> "subdir" + session.getUsername();
     }
 }

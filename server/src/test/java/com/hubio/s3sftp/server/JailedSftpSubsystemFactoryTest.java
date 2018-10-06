@@ -1,25 +1,17 @@
 package com.hubio.s3sftp.server;
 
 import com.hubio.s3sftp.server.filesystem.UserFileSystemResolver;
-import lombok.val;
+import org.apache.sshd.server.command.Command;
 import org.apache.sshd.server.subsystem.sftp.SftpErrorStatusDataHandler;
 import org.apache.sshd.server.subsystem.sftp.SftpEventListener;
 import org.apache.sshd.server.subsystem.sftp.SftpEventListenerManager;
 import org.apache.sshd.server.subsystem.sftp.SftpFileSystemAccessor;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.assertj.core.api.WithAssertions;
+import org.junit.jupiter.api.Test;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
-/**
- * Tests for {@link JailedSftpSubsystemFactory}.
- *
- * @author Paul Campbell (paul.campbell@hubio.com)
- */
-public class JailedSftpSubsystemFactoryTest {
+class JailedSftpSubsystemFactoryTest implements WithAssertions {
 
     private final SftpEventListener listener = mock(SftpEventListener.class);
     private final SessionBucket sessionBucket = mock(SessionBucket.class);
@@ -33,11 +25,11 @@ public class JailedSftpSubsystemFactoryTest {
             sessionBucket, sessionHome, sessionJail, userFileSystemResolver, accessor, errorStatusDataHandler);
 
     @Test
-    public void create() {
+    void create() {
         //given
         sftpSubsystemFactory.addSftpEventListener(listener);
         //when
-        val sftpSubsystem = sftpSubsystemFactory.create();
+        final Command sftpSubsystem = sftpSubsystemFactory.create();
         //then
         assertThat(sftpSubsystem).isInstanceOf(JailedSftpSubsystem.class);
         // that the listener was added to the command - true if matching listener was removed
