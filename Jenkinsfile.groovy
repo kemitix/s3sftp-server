@@ -60,7 +60,7 @@ pipeline {
             }
             steps {
                 withMaven(maven: 'maven', jdk: 'JDK 1.8') {
-                    sh "${mvn} -pl parent,server --activate-profiles release deploy"
+                    sh "${mvn} --activate-profiles release deploy"
                 }
             }
         }

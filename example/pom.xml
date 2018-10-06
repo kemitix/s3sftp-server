@@ -16,6 +16,8 @@
 
     <properties>
         <spring-boot.version>2.0.5.RELEASE</spring-boot.version>
+        <maven-install-plugin.version>2.5.2</maven-install-plugin.version>
+        <maven-deploy-plugin.version>3.0.0-M1</maven-deploy-plugin.version>
     </properties>
 
     <dependencies>
@@ -75,6 +77,24 @@
                         <tile>net.kemitix.tiles:huntbugs:${kemitix-tiles.version}</tile>
                         <tile>net.kemitix.tiles:pmd:${kemitix-tiles.version}</tile>
                     </tiles>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-install-plugin</artifactId>
+                <version>${maven-install-plugin.version}</version>
+                <configuration>
+                    <skip>true</skip>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-deploy-plugin</artifactId>
+                <version>${maven-deploy-plugin.version}</version>
+                <configuration>
+                    <skip>true</skip>
                 </configuration>
             </plugin>
         </plugins>
