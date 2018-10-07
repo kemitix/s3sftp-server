@@ -36,7 +36,7 @@ pipeline {
         stage('Verify & Install') {
             steps {
                 withMaven(maven: 'maven', jdk: 'JDK 1.8') {
-                    sh "${mvn} -DskipTests failsafe:verify install"
+                    sh "${mvn} -DskipTests failsafe:verify install:install"
                 }
             }
         }
@@ -60,7 +60,10 @@ pipeline {
             }
             steps {
                 withMaven(maven: 'maven', jdk: 'JDK 1.8') {
-                    sh "${mvn} -pl parent,server --activate-profiles release deploy"
+                    sh "${mvn} -pl parent,server " +
+                            "--activate-profiles release " +
+                            "-DskipMain -DskipTests -DskipITs -Dmaven.install.skip -Djacoco.skip " +
+                            "deploy"
                 }
             }
         }
