@@ -8,7 +8,7 @@ pipeline {
         stage('Build & Test') {
             steps {
                 withMaven(maven: 'maven', jdk: 'JDK 1.8') {
-                    sh "${mvn} clean compile checkstyle:checkstyle pmd:pmd test"
+                    sh "${mvn} clean test"
                     // PMD to Jenkins
                     pmd canComputeNew: false, defaultEncoding: '', healthy: '', pattern: '', unHealthy: ''
                 }
@@ -36,7 +36,7 @@ pipeline {
         stage('Verify & Install') {
             steps {
                 withMaven(maven: 'maven', jdk: 'JDK 1.8') {
-                    sh "${mvn} -DskipTests failsafe:verify install:install"
+                    sh "${mvn} --activate-profiles verify install"
                 }
             }
         }
@@ -60,10 +60,7 @@ pipeline {
             }
             steps {
                 withMaven(maven: 'maven', jdk: 'JDK 1.8') {
-                    sh "${mvn} -pl parent,server " +
-                            "--activate-profiles release " +
-                            "-DskipMain -DskipTests -DskipITs -Dmaven.install.skip -Djacoco.skip " +
-                            "deploy"
+                    sh "${mvn} -pl parent,server --activate-profiles release deploy"
                 }
             }
         }
@@ -71,7 +68,7 @@ pipeline {
             when { expression { dependenciesSupportJDK >= 9 } }
             steps {
                 withMaven(maven: 'maven', jdk: 'JDK 9') {
-                    sh "${mvn} clean verify -Djava.version=9"
+                    sh "${mvn} clean --activate-profiles verify verify -Djava.version=9"
                 }
             }
         }
@@ -79,7 +76,7 @@ pipeline {
             when { expression { dependenciesSupportJDK >= 10 } }
             steps {
                 withMaven(maven: 'maven', jdk: 'JDK 10') {
-                    sh "${mvn} clean verify -Djava.version=10"
+                    sh "${mvn} clean --activate-profiles verify verify -Djava.version=10"
                 }
             }
         }
