@@ -23,7 +23,7 @@ class DefaultUserFileSystemResolverTest implements WithAssertions {
         //then
         result.match(
                 s3FileSystem -> assertThat(s3FileSystem).isSameAs(fileSystem),
-                fail("filesystem not resolved")
+                () -> fail("filesystem not resolved")
         );
     }
 
