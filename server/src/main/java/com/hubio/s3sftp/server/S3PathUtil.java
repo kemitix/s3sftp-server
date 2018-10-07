@@ -4,8 +4,7 @@ import com.upplication.s3fs.S3FileStore;
 import com.upplication.s3fs.S3Path;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
-
-import java.util.Optional;
+import net.kemitix.mon.maybe.Maybe;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 @SuppressWarnings("hideutilityclassconstructor")
@@ -23,7 +22,7 @@ final class S3PathUtil {
     }
 
     private static String fileStoreName(final S3Path s3Path) {
-        return Optional.ofNullable(s3Path.getFileStore())
+        return Maybe.maybe(s3Path.getFileStore())
                 .map(S3FileStore::name)
                 .map(name -> S3Path.PATH_SEPARATOR + name)
                 .orElse("");

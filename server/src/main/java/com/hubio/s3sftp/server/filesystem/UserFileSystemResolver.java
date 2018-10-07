@@ -24,8 +24,7 @@
 package com.hubio.s3sftp.server.filesystem;
 
 import com.upplication.s3fs.S3FileSystem;
-
-import java.util.Optional;
+import net.kemitix.mon.maybe.Maybe;
 
 /**
  * Resolves a FileSystem from a username.
@@ -41,9 +40,9 @@ public interface UserFileSystemResolver {
      *
      * @param username the username
      *
-     * @return An Optional containing user's filesystem
+     * @return A Maybe containing the user's filesystem
      */
-    Optional<S3FileSystem> resolve(String username);
+    Maybe<S3FileSystem> resolve(String username);
 
     /**
      * Adds a username/filesystem mapping to the resolver.

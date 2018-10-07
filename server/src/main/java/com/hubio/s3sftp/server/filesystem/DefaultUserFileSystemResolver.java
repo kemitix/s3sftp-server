@@ -25,12 +25,11 @@ package com.hubio.s3sftp.server.filesystem;
 
 import com.upplication.s3fs.S3FileSystem;
 import lombok.extern.slf4j.Slf4j;
-import lombok.val;
+import net.kemitix.mon.maybe.Maybe;
 
 import java.lang.ref.WeakReference;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 
 /**
  * Default implementation of {@link UserFileSystemResolver}.
@@ -45,12 +44,11 @@ class DefaultUserFileSystemResolver implements UserFileSystemResolver {
     private Map<String, WeakReference<S3FileSystem>> map = new HashMap<>();
 
     @Override
-    public Optional<S3FileSystem> resolve(final String username) {
+    public Maybe<S3FileSystem> resolve(final String username) {
         log.debug("resolve({})", username);
-        val fileSystem = Optional.ofNullable(map.get(username))
-                                 .map(WeakReference::get);
-        log.trace(" <= filesystem: {}", fileSystem);
-        return fileSystem;
+        return Maybe.maybe(map.get(username))
+                .map(WeakReference::get)
+                .peek(s3FileSystem -> log.trace(" <= filesystem: {}", s3FileSystem));
     }
 
     @Override
