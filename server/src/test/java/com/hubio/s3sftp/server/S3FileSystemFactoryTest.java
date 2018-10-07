@@ -5,13 +5,13 @@ import com.hubio.s3sftp.server.filesystem.S3SftpFileSystemProviderFactory;
 import com.hubio.s3sftp.server.filesystem.UserFileSystemResolver;
 import com.upplication.s3fs.S3FileSystem;
 import lombok.val;
+import net.kemitix.mon.maybe.Maybe;
 import org.apache.sshd.server.session.ServerSession;
 import org.assertj.core.api.WithAssertions;
 import org.junit.jupiter.api.Test;
 
 import java.net.URI;
 import java.nio.file.FileSystem;
-import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -37,7 +37,7 @@ class S3FileSystemFactoryTest implements WithAssertions {
         //given
         val username = "newUser";
         given(serverSession.getUsername()).willReturn(username);
-        given(userFileSystemResolver.resolve(username)).willReturn(Optional.empty());
+        given(userFileSystemResolver.resolve(username)).willReturn(Maybe.nothing());
         given(fileSystemProviderFactory.createWith(any(), eq(serverSession))).willReturn(s3SftpFileSystemProvider);
         given(s3SftpFileSystemProvider.getFileSystem(any(), any())).willReturn(s3FileSystem);
         given(s3SftpFileSystemProvider.getSession()).willReturn(serverSession);

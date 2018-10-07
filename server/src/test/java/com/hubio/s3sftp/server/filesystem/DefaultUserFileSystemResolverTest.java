@@ -2,27 +2,29 @@ package com.hubio.s3sftp.server.filesystem;
 
 import com.upplication.s3fs.S3FileSystem;
 import lombok.val;
+import net.kemitix.mon.maybe.Maybe;
 import org.assertj.core.api.WithAssertions;
 import org.junit.jupiter.api.Test;
-
-import java.util.Optional;
 
 import static org.mockito.Mockito.mock;
 
 class DefaultUserFileSystemResolverTest implements WithAssertions {
 
-    private final S3FileSystem fileSystem = mock(S3FileSystem.class);
     private final DefaultUserFileSystemResolver subject = new DefaultUserFileSystemResolver();
 
     @Test
     void resolveKnownUser() {
         //given
         val username = "username";
+        val fileSystem = mock(S3FileSystem.class);
         subject.put(username, fileSystem);
         //when
-        final Optional<S3FileSystem> result = subject.resolve(username);
+        final Maybe<S3FileSystem> result = subject.resolve(username);
         //then
-        assertThat(result).contains(fileSystem);
+        result.match(
+                s3FileSystem -> assertThat(s3FileSystem).isSameAs(fileSystem),
+                fail("filesystem not resolved")
+        );
     }
 
     @Test
@@ -30,8 +32,8 @@ class DefaultUserFileSystemResolverTest implements WithAssertions {
         //given
         val username = "username";
         //when
-        final Optional<S3FileSystem> result = subject.resolve(username);
+        final Maybe<S3FileSystem> result = subject.resolve(username);
         //then
-        assertThat(result).isEmpty();
+        assertThat(result.isNothing()).isTrue();
     }
 }

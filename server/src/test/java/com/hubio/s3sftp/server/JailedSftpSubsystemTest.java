@@ -4,6 +4,7 @@ import com.hubio.s3sftp.server.filesystem.UserFileSystemResolver;
 import com.upplication.s3fs.S3FileSystem;
 import com.upplication.s3fs.S3Path;
 import lombok.val;
+import net.kemitix.mon.maybe.Maybe;
 import org.apache.sshd.common.Factory;
 import org.apache.sshd.common.random.Random;
 import org.apache.sshd.common.util.threads.CloseableExecutorService;
@@ -21,7 +22,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
@@ -96,7 +96,7 @@ class JailedSftpSubsystemTest implements WithAssertions {
             given(sessionBucket.getBucket(any())).willReturn(bucket);
             given(sessionJail.getJail(any())).willReturn("");
             given(sessionHome.getHomePath(any())).willReturn("");
-            given(userFileSystemResolver.resolve(username)).willReturn(Optional.of(s3FileSystem));
+            given(userFileSystemResolver.resolve(username)).willReturn(Maybe.just(s3FileSystem));
             given(s3FileSystem.getSeparator()).willReturn("/");
         }
 
@@ -315,7 +315,7 @@ class JailedSftpSubsystemTest implements WithAssertions {
         @Test
         void filesystemForUserIsMissing() {
             //given
-            given(userFileSystemResolver.resolve(username)).willReturn(Optional.empty());
+            given(userFileSystemResolver.resolve(username)).willReturn(Maybe.nothing());
             //then
             assertThatExceptionOfType(RuntimeException.class)
                     .isThrownBy(() -> sftpSubsystem.resolveFile("path"))
