@@ -8,11 +8,12 @@ CHANGELOG
 * [security] Bump aws-java-sdk from 1.11.373 to 1.11.404
 * [security] Bump boundycastle from 1.54 to 1.60
 * [security] Bump s3fs from 1.5.1 to 2.2.2
+* [bug] Fixed #46 Simple Password Authentication doesn't work
 * Bump assertj from 3.6.2 to 3.11.1
 * Bump guava to 26.0-jre (overriding s3fs version)
 * Bump junit from 4.12 to 5.2.0
 * Bump kemitix-maven-tiles from 0.9.0 to 1.2.0
-* Bump kemitix-parent from 2.7.0 to 5.1.1
+* Bump kemitix-parent from 2.7.0 to 5.1.2
 * Bump lombok from 1.18.0 to 1.18.2
 * Bump mockito-java8 from 0.3.1 to 2.4.0
 * Bump spring-boot from 1.5.14.RELEASE to 2.0.5.RELEASE
