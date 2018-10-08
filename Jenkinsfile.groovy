@@ -68,7 +68,7 @@ pipeline {
             when { expression { dependenciesSupportJDK >= 9 } }
             steps {
                 withMaven(maven: 'maven', jdk: 'JDK 9') {
-                    sh "${mvn} clean --activate-profiles verify verify -Djava.version=9"
+                    sh "${mvn} clean verify -Djava.version=9"
                 }
             }
         }
@@ -76,7 +76,7 @@ pipeline {
             when { expression { dependenciesSupportJDK >= 10 } }
             steps {
                 withMaven(maven: 'maven', jdk: 'JDK 10') {
-                    sh "${mvn} clean --activate-profiles verify verify -Djava.version=10"
+                    sh "${mvn} clean verify -Djava.version=10"
                 }
             }
         }
