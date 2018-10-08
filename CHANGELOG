@@ -1,6 +1,13 @@
 CHANGELOG
 =========
 
+1.1.1
+-----
+
+* Bump junit-bom from 5.2.0 to 5.3.1 #53
+* Bump mockito-junit-jupiter from 2.20.1 to 2.23.0 #52
+* Bump kemitix-parent from 5.1.2 to 5.2.0 #51
+
 1.1.0
 -----
 
