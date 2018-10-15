@@ -24,7 +24,6 @@
 package com.hubio.s3sftp.server.filesystem;
 
 import lombok.extern.slf4j.Slf4j;
-import lombok.val;
 
 import java.io.IOException;
 import java.nio.file.LinkOption;
@@ -53,7 +52,7 @@ class PosixPermissionsS3SftpFileSystemProvider extends S3SftpFileSystemProviderD
     public Map<String, Object> readAttributes(final Path path, final String attributes, final LinkOption... options)
             throws IOException {
         log.trace("readAttributes({}, {}, {})", path, attributes, options);
-        val attributeMap = super.readAttributes(path, attributes, options);
+        final Map<String, Object> attributeMap = super.readAttributes(path, attributes, options);
         attributeMap.put("permissions", PosixFilePermissions.fromString("rw-rw----"));
         return attributeMap;
     }
