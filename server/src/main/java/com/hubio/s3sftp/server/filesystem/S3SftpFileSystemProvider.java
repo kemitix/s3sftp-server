@@ -37,15 +37,7 @@ import java.net.URI;
 import java.nio.channels.AsynchronousFileChannel;
 import java.nio.channels.FileChannel;
 import java.nio.channels.SeekableByteChannel;
-import java.nio.file.AccessMode;
-import java.nio.file.CopyOption;
-import java.nio.file.DirectoryStream;
-import java.nio.file.FileStore;
-import java.nio.file.FileSystem;
-import java.nio.file.Files;
-import java.nio.file.LinkOption;
-import java.nio.file.OpenOption;
-import java.nio.file.Path;
+import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileAttribute;
 import java.nio.file.attribute.FileAttributeView;
@@ -73,7 +65,7 @@ public interface S3SftpFileSystemProvider {
      *
      * @return the {@link S3FileSystemProvider}
      */
-    S3FileSystemProvider getS3FileSystemProvider();
+    public S3FileSystemProvider getS3FileSystemProvider();
 
     /**
      * Checks the existence, and optionally the accessibility, of a file.
