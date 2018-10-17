@@ -9,6 +9,7 @@ CHANGELOG
 * Bump junit-bom from 5.2.0 to 5.3.1 (#53)
 * Bump mockito-junit-jupiter from 2.20.1 to 2.23.0 (#52)
 * Bump kemitix-parent from 5.1.2 to 5.2.0 (#51)
+* Bump spring-boot from 2.0.5 to 2.0.6 (#57)
 
 1.1.0
 -----
