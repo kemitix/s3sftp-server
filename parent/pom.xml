@@ -60,7 +60,7 @@
         <mockito-java8.version>2.4.0</mockito-java8.version>
         <lombok.version>1.18.2</lombok.version>
         <aws-java-sdk.version>1.11.404</aws-java-sdk.version>
-        <guava.version>26.0-jre</guava.version>
+        <guava.version>27.0-jre</guava.version>
         <mon.version>2.0.0</mon.version>
     </properties>
 
