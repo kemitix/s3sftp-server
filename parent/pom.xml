@@ -57,7 +57,7 @@
         <mockito.version>2.23.0</mockito.version>
         <assertj.version>3.11.1</assertj.version>
         <junit-hierarchicalcontextrunner.version>4.12.1</junit-hierarchicalcontextrunner.version>
-        <mockito-java8.version>2.4.0</mockito-java8.version>
+        <mockito-java8.version>2.5.0</mockito-java8.version>
         <lombok.version>1.18.2</lombok.version>
         <aws-java-sdk.version>1.11.404</aws-java-sdk.version>
         <guava.version>27.0-jre</guava.version>
