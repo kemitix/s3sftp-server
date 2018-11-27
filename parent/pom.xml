@@ -59,7 +59,7 @@
         <junit-hierarchicalcontextrunner.version>4.12.1</junit-hierarchicalcontextrunner.version>
         <mockito-java8.version>2.5.0</mockito-java8.version>
         <lombok.version>1.18.4</lombok.version>
-        <aws-java-sdk.version>1.11.456</aws-java-sdk.version>
+        <aws-java-sdk.version>1.11.457</aws-java-sdk.version>
         <guava.version>27.0-jre</guava.version>
         <mon.version>2.0.0</mon.version>
     </properties>
