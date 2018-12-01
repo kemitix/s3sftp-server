@@ -53,7 +53,7 @@
         <map-builder.version>1.0.0</map-builder.version>
         <bouncycastle.version>1.60</bouncycastle.version>
         <s3fs.version>2.2.2</s3fs.version>
-        <junit.version>5.3.1</junit.version>
+        <junit.version>5.3.2</junit.version>
         <mockito.version>2.23.0</mockito.version>
         <assertj.version>3.11.1</assertj.version>
         <junit-hierarchicalcontextrunner.version>4.12.1</junit-hierarchicalcontextrunner.version>
