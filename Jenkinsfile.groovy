@@ -1,6 +1,5 @@
 final String publicRepo = 'https://github.com/kemitix/'
 final String mvn = "mvn --batch-mode --update-snapshots --errors"
-final dependenciesSupportJDK = 10
 
 pipeline {
     agent any
@@ -55,7 +54,6 @@ pipeline {
             }
         }
         stage('Build Java 9') {
-            when { expression { dependenciesSupportJDK >= 9 } }
             steps {
                 withMaven(maven: 'maven', jdk: 'JDK 9') {
                     sh "${mvn} clean verify -Djava.version=9"
@@ -63,10 +61,23 @@ pipeline {
             }
         }
         stage('Build Java 10') {
-            when { expression { dependenciesSupportJDK >= 10 } }
             steps {
                 withMaven(maven: 'maven', jdk: 'JDK 10') {
                     sh "${mvn} clean verify -Djava.version=10"
+                }
+            }
+        }
+        stage('Build Java 11') {
+            steps {
+                withMaven(maven: 'maven', jdk: 'JDK 11') {
+                    sh "${mvn} clean verify -Djava.version=11"
+                }
+            }
+        }
+        stage('Build Java 12') {
+            steps {
+                withMaven(maven: 'maven', jdk: 'JDK 12') {
+                    sh "${mvn} clean verify -Djava.version=12"
                 }
             }
         }
