@@ -1,4 +1,10 @@
-* S3 SFTP Server
+* S3 SFTP Server (UNMAINTAINED)
+
+  As of the =1.1.1= release, the =s3sftp-server= project is
+  'unmaintained'.
+
+  Amazon AWS now provides a native SFTP service for S3.
+
 
 ** SFTP access to an Amazon S3 Bucket
 

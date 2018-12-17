@@ -1,15 +1,22 @@
 CHANGELOG
 =========
 
-1.1.1
+1.1.1 - FINAL RELEASE - UNMAINTAINED
 -----
 
 * Bump mon from 1.2.0 to 2.0.0 (#56)
 * Remove duplicate code (#56)
-* Bump junit-bom from 5.2.0 to 5.3.1 (#53)
-* Bump mockito-junit-jupiter from 2.20.1 to 2.23.0 (#52)
+* Bump junit-bom from 5.2.0 to 5.3.2 (#53)(#67)
+* Bump mockito-junit-jupiter from 2.20.1 to 2.23.4 (#52)(#70)
+* Bump mockito-java8 from 2.4.0 to 2.5.0 (#59)
 * Bump kemitix-parent from 5.1.2 to 5.2.0 (#51)
-* Bump spring-boot from 2.0.5 to 2.0.6 (#57)
+* Bump spring-boot from 2.0.5 to 2.1.1 (#57)(#61)(#68)(#71)
+* Bump guava from 26.0-jre to 27.0.1-jre (#58)(#69)
+* Bump lombok from 1.18.2 to 1.18.4 (#60)
+* Bump aws-java-sdk from 1.11.404 to 1.11.461 (#62)(#63)(#64)(#65)(#66)
+* [jenkins] Remove SonarQube/SonarCloud verification (#73)
+* Bump jackson-databind to 2.9.7 (#72)
+* Bump apache-tika from 1.5 to 1.19.1 (#74)
 
 1.1.0
 -----
