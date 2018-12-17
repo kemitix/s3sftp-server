@@ -47,21 +47,22 @@
         <tiles-maven-plugin.version>2.12</tiles-maven-plugin.version>
         <kemitix-tiles.version>1.2.0</kemitix-tiles.version>
         <kemitix-checkstyle.version>4.1.1</kemitix-checkstyle.version>
-        <spring-boot.version>2.1.0.RELEASE</spring-boot.version>
+        <spring-boot.version>2.1.1.RELEASE</spring-boot.version>
         <digraph-dependency.basePackage>com.hubio.s3sftp</digraph-dependency.basePackage>
         <apache-sshd.version>2.1.0</apache-sshd.version>
         <map-builder.version>1.0.0</map-builder.version>
         <bouncycastle.version>1.60</bouncycastle.version>
         <s3fs.version>2.2.2</s3fs.version>
-        <junit.version>5.3.1</junit.version>
-        <mockito.version>2.23.0</mockito.version>
+        <junit.version>5.3.2</junit.version>
+        <mockito.version>2.23.4</mockito.version>
         <assertj.version>3.11.1</assertj.version>
         <junit-hierarchicalcontextrunner.version>4.12.1</junit-hierarchicalcontextrunner.version>
         <mockito-java8.version>2.5.0</mockito-java8.version>
         <lombok.version>1.18.4</lombok.version>
         <aws-java-sdk.version>1.11.461</aws-java-sdk.version>
-        <guava.version>27.0-jre</guava.version>
+        <guava.version>27.0.1-jre</guava.version>
         <mon.version>2.0.0</mon.version>
+        <jackson-databind.version>2.9.7</jackson-databind.version>
     </properties>
 
     <build>
@@ -146,6 +147,11 @@
                 <groupId>com.amazonaws</groupId>
                 <artifactId>aws-java-sdk-s3</artifactId>
                 <version>${aws-java-sdk.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-databind</artifactId>
+                <version>${jackson-databind.version}</version>
             </dependency>
             <!-- S3 Filesystem -->
             <dependency>
