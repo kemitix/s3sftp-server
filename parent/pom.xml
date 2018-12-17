@@ -63,6 +63,7 @@
         <guava.version>27.0.1-jre</guava.version>
         <mon.version>2.0.0</mon.version>
         <jackson-databind.version>2.9.7</jackson-databind.version>
+	<tika.version>1.19.1</tika.version>
     </properties>
 
     <build>
@@ -152,6 +153,11 @@
                 <groupId>com.fasterxml.jackson.core</groupId>
                 <artifactId>jackson-databind</artifactId>
                 <version>${jackson-databind.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.tika</groupId>
+                <artifactId>tika-core</artifactId>
+                <version>${tika.version}</version>
             </dependency>
             <!-- S3 Filesystem -->
             <dependency>
